@@ -26,6 +26,10 @@ export default function Navbar() {
       <div className="container py-3">
         <div className="header__layout d-flex align-items-center justify-content-between gap-3 flex-wrap flex-lg-nowrap">
           <div className="d-flex align-items-center gap-3 flex-shrink-0">
+    <header>
+      <div className="container py-3">
+        <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
+          <div className="d-flex align-items-center gap-3">
             <button
               className="btn btn-outline-secondary d-lg-none"
               type="button"
@@ -43,6 +47,9 @@ export default function Navbar() {
           <div className={`menu header__menu flex-grow-1 ${menuOpen ? "d-block" : "d-none d-lg-block"}`}>
             <nav>
               <ul className="nav flex-column flex-lg-row justify-content-center align-items-center mb-0 gap-2 gap-lg-4">
+          <div className={`menu flex-grow-1 ${menuOpen ? "d-block" : "d-none d-lg-block"}`}>
+            <nav>
+              <ul className="nav justify-content-center align-items-center mb-0 gap-3">
                 {NAV_LINKS.map((link) => (
                   <li key={link.label} className="nav-item" onClick={closeMenu}>
                     <a href={link.href} className="nav-link">
@@ -55,6 +62,7 @@ export default function Navbar() {
           </div>
 
           <div className="header__actions d-flex align-items-center gap-3 flex-wrap flex-lg-nowrap justify-content-center justify-content-lg-end ms-lg-3">
+          <div className="d-flex align-items-center gap-3 ms-lg-3">
             <a href="#productos" className="btn__search d-none d-sm-inline-block">
               Explorar
             </a>
