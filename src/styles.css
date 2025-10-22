@@ -5,7 +5,7 @@
  */
 
 /* Estilos para el body de las páginas de admin */
-body {
+body.admin-body {
     font-family: "Google Sans", "Poppins", sans-serif; /* Hereda la fuente de tu tienda */
     background-image: url('/TheHub/images/bg/bg.png'); /* Ruta para salir de /admin y entrar a /images */
     background-size: cover;
@@ -190,6 +190,7 @@ body {
 body {
   font-family: "Google Sans", "Poppins", sans-serif;
   color: #333;
+  background-color: #fff;
   overflow-x: hidden; /* Prevenir scroll horizontal */
 }
 
