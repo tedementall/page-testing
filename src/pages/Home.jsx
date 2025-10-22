@@ -6,7 +6,7 @@ import Team from "../components/Team"
 
 export default function Home() {
   return (
-    <main>
+    <main className="main-content-padding">
       <Hero />
       <Trust />
       <About />
