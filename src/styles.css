@@ -815,26 +815,39 @@ body {
 }
 .related-products-modal .related-product-item {
     border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 10px;
+    border-radius: 12px;
+    padding: 14px;
     text-align: center;
     transition: var(--transition-medium);
+    background: #fff;
+    cursor: pointer;
+    color: inherit;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .5rem;
 }
-.related-products-modal .related-product-item:hover {
+.related-products-modal .related-product-item:hover,
+.related-products-modal .related-product-item:focus {
     box-shadow: var(--shadow-card);
     transform: translateY(-3px);
+    outline: none;
 }
 .related-products-modal .related-product-item img {
     max-width: 100%;
-    height: 80px; /* Altura fija para la miniatura */
+    height: 90px;
     object-fit: contain;
-    border-radius: 4px;
-    margin-bottom: 10px;
+    border-radius: 6px;
 }
-.related-products-modal .related-product-item p {
+.related-products-modal .related-product-item h6 {
+    font-size: 0.95rem;
+    color: var(--color_text-secundary);
+    margin-bottom: 0;
+}
+.related-products-modal .related-product-item .price {
     font-size: 0.85rem;
     color: var(--color_text-tertiary);
-    margin-bottom: 5px;
 }
 
 /* --- ESTILOS PARA FORMULARIOS DE LOGIN Y REGISTRO --- */
@@ -905,6 +918,12 @@ body {
   opacity: 1; /* Clase que aplicamos para que la página aparezca suavemente */
 }
 
+.cart-badge {
+  background-color: var(--main_color-primary) !important;
+  color: #fff;
+  min-width: 1.75rem;
+}
+
 /* --- ESTILOS PARA EL CARRITO OFFCANVAS --- */
 .offcanvas-cart-item {
   display: flex;
@@ -968,6 +987,9 @@ body {
   color: var(--color_text-tertiary);
   text-decoration: none;
   font-size: 0.8rem;
+  background: none;
+  border: none;
+  cursor: pointer;
 }
 
 .offcanvas-cart-item-actions .remove-btn:hover {
