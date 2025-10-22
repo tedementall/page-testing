@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useCart } from "../context/CartContext";
 
 const NAV_LINKS = [
   { label: "Inicio", href: "#home" },
@@ -17,6 +18,7 @@ const SOCIAL_LINKS = [
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { totalItems } = useCart();
   const toggleMenu = () => setMenuOpen((p) => !p);
   const closeMenu = () => setMenuOpen(false);
 
@@ -68,7 +70,7 @@ export default function Navbar() {
             </div>
 
             <button
-              className="btn btn-outline-secondary rounded-pill d-flex align-items-center gap-2"
+              className="btn btn-outline-secondary rounded-pill d-flex align-items-center gap-2 position-relative"
               type="button"
               data-bs-toggle="offcanvas"
               data-bs-target="#cartOffcanvas"
@@ -77,6 +79,11 @@ export default function Navbar() {
             >
               <i className="fas fa-shopping-cart"></i>
               <span className="d-none d-lg-inline">Carrito</span>
+              {totalItems > 0 ? (
+                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill cart-badge">
+                  {totalItems}
+                </span>
+              ) : null}
             </button>
 
             <a href="#contacto" className="btn__text">Acceder</a>
