@@ -7,7 +7,7 @@
 /* Estilos para el body de las páginas de admin */
 body {
     font-family: "Google Sans", "Poppins", sans-serif; /* Hereda la fuente de tu tienda */
-    background-image: url('../images/bg/bg.png'); /* Ruta para salir de /admin y entrar a /images */
+    background-image: url('/TheHub/images/bg/bg.png'); /* Ruta para salir de /admin y entrar a /images */
     background-size: cover;
     background-attachment: fixed;
     background-position: center;
@@ -140,7 +140,7 @@ body {
 
 @font-face {
   font-family: "Google Sans";
-  src: url("../fonts/GoogleSans-Regular.ttf") format("truetype");
+  src: url("/TheHub/fonts/GoogleSans-Regular.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
 }
