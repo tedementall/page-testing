@@ -1,0 +1,972 @@
+
+/* === TheHub/admin/admin.css === */
+/*
+ * Hoja de Estilos para el Panel de Administrador de The Hub
+ */
+
+/* Estilos para el body de las páginas de admin */
+body {
+    font-family: "Google Sans", "Poppins", sans-serif; /* Hereda la fuente de tu tienda */
+    background-image: url('../images/bg/bg.png'); /* Ruta para salir de /admin y entrar a /images */
+    background-size: cover;
+    background-attachment: fixed;
+    background-position: center;
+}
+
+/* Contenedor principal para el layout (sidebar + contenido) */
+.admin-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Menú Lateral (Sidebar) con efecto de vidrio esmerilado */
+.admin-sidebar {
+    width: 260px;
+    flex-shrink: 0; /* Evita que el sidebar se encoja */
+    padding: 2rem 1.5rem;
+
+    /* --- Efecto "Glassmorphism" --- */
+    background-color: rgba(30, 30, 30, 0.4); /* Fondo oscuro semi-transparente */
+    backdrop-filter: blur(20px);               /* El efecto de desenfoque (blur) */
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0 20px 20px 0; /* Esquinas redondeadas solo en el lado derecho */
+    box-shadow: var(--shadow-card); /* Reutilizamos la sombra de tu style.css */
+}
+
+.admin-sidebar .sidebar-header {
+    margin-bottom: 2.5rem;
+    text-align: center;
+}
+
+.admin-sidebar .sidebar-header a {
+    text-decoration: none;
+}
+
+.admin-sidebar .sidebar-header img {
+    max-width: 150px;
+    margin-bottom: 0.5rem;
+}
+
+/* Estilo para los enlaces de navegación del menú */
+.admin-sidebar .nav-link {
+    color: #f0f0f0; /* Texto claro para que contraste con el fondo */
+    font-weight: 500;
+    padding: 0.8rem 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 10px;
+    transition: var(--transition-fast); /* Reutilizamos la animación de tu style.css */
+}
+
+.admin-sidebar .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    transform: translateX(5px);
+}
+
+.admin-sidebar .nav-link.active {
+    background-color: var(--main_color-primary); /* Reutilizamos el color principal de tu tienda */
+    color: #fff;
+    font-weight: bold;
+}
+
+/* Botón de Cerrar Sesión al final del menú */
+.admin-sidebar .logout-section {
+    margin-top: auto; /* Empuja esta sección al fondo */
+}
+
+/* Contenedor para el contenido principal a la derecha */
+.admin-content {
+    flex-grow: 1; /* Hace que ocupe todo el espacio restante */
+    padding: 2.5rem;
+    color: #fff; /* Texto blanco para el contenido */
+}
+
+.admin-content h1 {
+    font-weight: 700;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5); /* Sombra para legibilidad */
+}
+
+/* --- ESTILO PARA PANELES DE CONTENIDO GENERAL (Glassmorphism) --- */
+.content-panel {
+    background-color: rgba(30, 30, 30, 0.4);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: var(--shadow-card);
+}
+
+.content-panel h1, .content-panel p, .content-panel h4 {
+    text-shadow: none; /* Quitamos la sombra de texto general para que se vea más nítido dentro del panel */
+}
+
+/* --- ESTILOS PARA LA TABLA DE PRODUCTOS --- */
+.table-container {
+    background-color: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 20px; /* Esquinas redondeadas */
+    padding: 1rem;
+    box-shadow: var(--shadow-card);
+}
+
+.table {
+    background-color: transparent; /* HACE LA TABLA TRANSPARENTE */
+    color: #fff; /* Asegura que el texto dentro sea blanco y legible */
+}
+
+.table thead th {
+    background-color: transparent !important; /* Hacemos el fondo del header transparente */
+    color: #fff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 1rem;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Hacemos el hover visible */
+}
+
+.table tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-top: 1px solid rgba(255, 255, 255, 0.1); /* Línea sutil para separar filas */
+}
+
+/* === TheHub/css/style.css === */
+
+@font-face {
+  font-family: "Google Sans";
+  src: url("../fonts/GoogleSans-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+:root {
+  /* Colores */
+  --color_text-primary: #9a00bf;
+  --color_text-secundary: #101e2c;
+  --color_text-tertiary: #485663;
+  --main_color-primary: #9a00bf;
+  --main_color-secundary: #f4d4fb;
+  --background-color: #fafbfe;
+
+  /* Footer */
+  --footer-bg: #ffffff;
+  --footer-text: #555;
+  --footer-border: #e9e9e9;
+  --footer-highlight: #8A2BE2;
+
+  /* Tamaños de texto */
+  --lowtext_font_size: 16px;
+  --text_size_tittle: 40px;
+  --text_tittle_card: 24px;
+  --text_tittle_cardv2: 20px;
+  --text_paragraph: 16px;
+
+  /* Sombras */
+  --box_shadow-primary: 0px 6px 50px -20px rgba(0, 0, 0, 0.2);
+  --shadow-header: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-card: 0 6px 18px rgba(0, 0, 0, 0.1);
+  --shadow-card-hover: 0 10px 25px rgba(0, 0, 0, 0.25);
+  --shadow-highlight: 0px 6px 50px -20px rgba(0, 0, 0, 0.2);
+
+  /* Animaciones */
+  --transition-fast: all 0.2s ease;
+  --transition-medium: all 0.3s ease;
+  --transition-slow: all 0.5s ease;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  text-decoration: none;
+}
+
+body {
+  font-family: "Google Sans", "Poppins", sans-serif;
+  color: #333;
+  overflow-x: hidden; /* Prevenir scroll horizontal */
+}
+
+/* Header */
+header {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-header);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.main-content-padding {
+  padding-top: 90px; /* Ajusta este valor si tu header es más alto o bajo */
+}
+
+.logo img {
+  width: 200px;
+  height: auto;
+}
+
+.menu nav ul li {
+  margin: 0 16px;
+}
+
+.menu nav ul li a {
+  color: var(--color_text-secundary);
+  font-size: 16px;
+  position: relative;
+  transition: var(--transition-medium);
+}
+
+.menu nav ul li a:hover {
+  color: var(--color_text-primary);
+}
+
+.btn__search {
+  padding: 8px 40px;
+  border: 2px solid var(--main_color-primary);
+  border-radius: 15px;
+  font-weight: 500;
+  margin: 0 20px;
+  transition: var(--transition-medium);
+  color: var(--color_text-secundary);
+  text-decoration: none;
+}
+
+.btn__search:hover {
+  color: white;
+  background: var(--main_color-primary);
+}
+
+.SocialMedia a {
+  margin: 0 10px;
+  color: var(--color_text-secundary);
+  transition: var(--transition-medium);
+}
+
+.SocialMedia a:hover {
+  color: var(--color_text-primary);
+}
+
+/* Cover Section */
+.container__cover {
+  background: var(--main_color-secundary);
+  padding: 100px 0;
+}
+
+.text__cover h1 {
+  font-size: 3.5rem;
+  color: var(--color_text-secundary);
+  font-weight: 700;
+}
+
+.text__cover p {
+  font-size: 1.2rem;
+  margin-top: 20px;
+  color: var(--color_text-tertiary);
+}
+
+.btn__text {
+  display: inline-block;
+  padding: 12px 30px;
+  text-align: center;
+  font-weight: 500;
+  background: var(--main_color-primary);
+  color: white;
+  border-radius: 15px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: var(--transition-medium);
+  text-decoration: none;
+  margin-top: 20px;
+}
+
+.btn__text:hover {
+  background: transparent;
+  border: 2px solid var(--main_color-primary);
+  color: var(--main_color-primary);
+}
+
+.image__cover img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Trust Section */
+.container__trust {
+  padding: 100px 0;
+}
+
+.text__trust p {
+  color: var(--color_text-primary);
+  letter-spacing: 4px;
+  font-size: var(--text_paragraph);
+  font-weight: 500;
+}
+
+.text__trust h1 {
+  font-size: var(--text_size_tittle);
+  font-weight: 600;
+  color: var(--color_text-secundary);
+}
+
+.card__trust {
+  padding: 40px 30px;
+  border: 1px solid #e6e6e6;
+  border-radius: 20px;
+  transition: var(--transition-medium);
+  height: 100%;
+}
+
+.card__trust:hover {
+  border: 1px solid transparent;
+  box-shadow: var(--box_shadow-primary);
+}
+
+.card__trust h2 {
+  font-size: var(--text_tittle_card);
+  margin-top: 20px;
+  font-weight: 500;
+}
+
+.card__trust p {
+  margin-top: 15px;
+  color: var(--color_text-tertiary);
+}
+
+/* About Section */
+.container__about {
+  padding: 100px 0;
+  background: var(--background-color);
+}
+
+.text__about h1 {
+  color: var(--color_text-secundary);
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.text__about p {
+  font-size: var(--text_paragraph);
+  color: var(--color_text-tertiary);
+}
+
+.image__about img {
+  max-width: 100%;
+  border-radius: 15px;
+  box-shadow: var(--shadow-card);
+}
+
+/* Products Section */
+.container__product {
+  padding: 100px 0;
+}
+
+.text__product p {
+  color: var(--color_text-primary);
+  letter-spacing: 4px;
+  font-size: var(--text_paragraph);
+  font-weight: 500;
+}
+
+.text__product h1 {
+  font-size: var(--text_size_tittle);
+  font-weight: 600;
+  color: var(--color_text-secundary);
+}
+
+.card__product {
+  text-align: center;
+  padding: 20px;
+  transition: var(--transition-medium);
+  margin-bottom: 30px;
+}
+
+.card__product img {
+  width: 100%;
+  max-width: 250px;
+  margin: 0 auto 15px auto;
+  border-radius: 20px;
+  transition: var(--transition-medium);
+}
+
+.card__product:hover img {
+  transform: scale(1.05);
+  box-shadow: var(--box_shadow-primary);
+}
+
+.card__product h2 {
+  font-size: 14px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  opacity: 0.8;
+}
+
+.card__product p {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.card__product .price {
+  display: block;
+  margin-top: 5px;
+  font-weight: bold;
+  font-size: 18px;
+  color: var(--color_text-primary);
+}
+
+/* Team Section */
+.container__team {
+  padding: 100px 0;
+}
+
+.text__team p {
+  color: var(--color_text-primary);
+  font-weight: 600;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+}
+
+.text__team h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 40px;
+  color: var(--color_text-secundary);
+}
+
+.team__card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+  transition: var(--transition-medium);
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.team__card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.team__card img {
+  width: 100%;
+  border-radius: 12px;
+  margin-bottom: 15px;
+  transition: var(--transition-medium);
+}
+
+.team__card:hover img {
+  transform: scale(1.05);
+}
+
+.team__card h3 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.team__card p {
+  color: #555;
+  font-size: 0.9rem;
+}
+
+/* Footer */
+.site-footer {
+  background-color: var(--footer-bg);
+  color: var(--footer-text);
+  padding: 60px 0 20px;
+  border-top: 1px solid var(--footer-border);
+}
+
+.footer-logo {
+  max-width: 150px;
+  margin-bottom: 20px;
+}
+
+.site-footer h4 { /* Estilo unificado para H4 en footer */
+  font-size: 18px;
+  color: var(--color_text-secundary);
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.site-footer ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.site-footer ul li {
+  margin-bottom: 10px;
+}
+
+.site-footer ul li a {
+  text-decoration: none;
+  color: var(--footer-text);
+  font-size: 15px;
+  transition: var(--transition-medium);
+}
+
+.site-footer ul li a:hover {
+  color: var(--footer-highlight);
+}
+
+.newsletter-form {
+  display: flex;
+  margin-top: 20px;
+  background-color: #f4f7fa;
+  border-radius: 8px;
+  padding: 5px;
+}
+
+.newsletter-form input {
+  border: none;
+  background: transparent;
+  padding: 10px;
+  flex-grow: 1;
+  font-size: 14px;
+}
+
+.newsletter-form input:focus {
+  outline: none;
+}
+
+.newsletter-form button {
+  background: transparent;
+  border: none;
+  color: var(--footer-highlight);
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0 15px;
+}
+
+.contact-list i {
+  color: var(--footer-highlight);
+  font-size: 18px;
+  width: 25px;
+  margin-right: 10px;
+  text-align: center;
+}
+
+.footer-bottom {
+  padding-top: 20px;
+  border-top: 1px solid var(--footer-border);
+  margin-top: 40px;
+}
+
+.social-icons a {
+  color: var(--footer-text);
+  text-decoration: none;
+  font-size: 18px;
+  margin-left: 15px;
+  transition: var(--transition-medium);
+}
+
+.social-icons a:hover {
+  color: var(--footer-highlight);
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .text__cover h1 {
+    font-size: 2.5rem;
+  }
+  
+  .menu nav {
+    margin: 15px 0;
+  }
+  
+  .btn__search {
+    margin: 10px 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .text__cover {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  
+  .text__about, .text__product, .text__team {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  
+  .footer-column {
+    margin-bottom: 40px;
+  }
+  
+  .footer-bottom {
+    text-align: center;
+  }
+  
+  .social-icons {
+    justify-content: center;
+    margin-top: 15px;
+  }
+}
+
+@media (max-width: 576px) {
+  .logo img {
+    width: 150px;
+  }
+  
+  .text__cover h1 {
+    font-size: 2rem;
+  }
+  
+  .btn__search {
+    padding: 8px 20px;
+  }
+}
+
+/* --- INICIO ESTILOS ADICIONALES PARA LA VENTANA MODAL (ADAPTADO AL MOCKUP) --- */
+.modal-content {
+  border-radius: 12px;
+  box-shadow: var(--shadow-card-hover); /* Usamos una sombra similar a la de tus tarjetas */
+}
+
+.modal-header {
+  padding: 1rem;
+  border-bottom: none;
+}
+
+.modal-body {
+  padding: 2rem;
+}
+
+.product-hero-modal .product-image-container {
+  border: 1px solid #e0e0e0; /* Borde similar al mockup */
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px; /* Espacio para las miniaturas */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px; /* Altura mínima para la imagen principal */
+}
+
+.product-hero-modal .product-image-container img {
+  max-width: 100%;
+  max-height: 350px; /* Ajustamos la altura máxima */
+  height: auto;
+  border-radius: 4px;
+}
+
+.product-hero-modal .thumbnail-gallery {
+  display: flex;
+  gap: 10px; /* Espacio entre las miniaturas */
+  margin-top: 15px;
+}
+
+.product-hero-modal .thumbnail-gallery .thumbnail-item {
+  width: 60px; /* Tamaño fijo para las miniaturas */
+  height: 60px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  transition: border-color var(--transition-fast);
+}
+
+.product-hero-modal .thumbnail-gallery .thumbnail-item:hover {
+  border-color: var(--main_color-primary); /* Resalta al pasar el mouse */
+}
+
+.product-hero-modal .thumbnail-gallery .thumbnail-item.active {
+  border-color: var(--main_color-primary);
+  border-width: 2px;
+}
+
+.product-hero-modal .thumbnail-gallery .thumbnail-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Asegura que la imagen cubra el área */
+}
+
+.product-hero-modal .product-info {
+  padding: 0; /* Ya tenemos padding en el modal-body */
+}
+
+.product-hero-modal .product-category {
+  color: #777; 
+  font-size: 0.9rem;
+  font-weight: normal;
+  letter-spacing: normal;
+  margin-bottom: 5px;
+  text-transform: capitalize; 
+}
+
+.product-hero-modal .product-title {
+  font-size: 2rem; /* Un poco más pequeño que antes */
+  color: var(--color_text-secundary);
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.product-hero-modal .product-price {
+  font-size: 1.6rem;
+  color: var(--color_text-secundary); 
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.product-hero-modal .product-description {
+  color: var(--color_text-tertiary);
+  margin-bottom: 20px;
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+.product-hero-modal .quantity-label {
+  font-weight: 500;
+  margin-bottom: 8px;
+  display: block;
+  color: var(--color_text-secundary);
+}
+
+.product-hero-modal .quantity-selector {
+  justify-content: start; /* Alineamos a la izquierda */
+  margin-bottom: 20px;
+}
+.product-hero-modal .quantity-btn {
+    width: 35px;
+    height: 35px;
+    font-size: 1rem;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+}
+.product-hero-modal .quantity-input {
+    width: 50px;
+    height: 35px;
+    border: 1px solid #ddd;
+}
+
+.product-hero-modal .add-to-cart-btn {
+  background: var(--main_color-primary);
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 8px; /* Bordes un poco más suaves */
+  font-weight: 500;
+  transition: var(--transition-medium);
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 0; /* Remove extra margin */
+}
+
+.product-hero-modal .add-to-cart-btn:hover {
+  background: #7d00a0;
+  transform: translateY(-2px);
+}
+.product-hero-modal .add-to-cart-btn i {
+  margin-right: 8px; /* Espacio reducido */
+}
+
+/* Ocultamos las "Product Features" que no están en el mockup */
+.product-hero-modal .product-features {
+  display: none;
+}
+
+/* Estilo para los Related Products que agregaremos al final del modal body */
+.related-products-modal {
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 1px solid #eee;
+}
+.related-products-modal h3 {
+    font-size: 1.5rem;
+    color: var(--color_text-secundary);
+    margin-bottom: 20px;
+}
+.related-products-modal .related-product-item {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    transition: var(--transition-medium);
+}
+.related-products-modal .related-product-item:hover {
+    box-shadow: var(--shadow-card);
+    transform: translateY(-3px);
+}
+.related-products-modal .related-product-item img {
+    max-width: 100%;
+    height: 80px; /* Altura fija para la miniatura */
+    object-fit: contain;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+.related-products-modal .related-product-item p {
+    font-size: 0.85rem;
+    color: var(--color_text-tertiary);
+    margin-bottom: 5px;
+}
+
+/* --- ESTILOS PARA FORMULARIOS DE LOGIN Y REGISTRO --- */
+
+.form-container {
+  max-width: 450px; /* Un poco más de espacio */
+  margin: 50px auto;
+  padding: 30px;
+  background-color: #ffffffcc; /* Fondo blanco semi-transparente */
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(10px); /* Efecto de vidrio esmerilado */
+  margin-bottom: 100px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  font-weight: 500;
+  color: var(--color_text-secundary);
+  margin-bottom: 8px;
+}
+
+.btn-registro {
+  width: 200px;
+  padding: 10px;
+  font-weight: 500;
+  background: var(--main_color-primary);
+  color: white;
+  border-radius: 15px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: var(--transition-medium);
+  margin: 0 auto;
+  display: block;
+}
+
+.btn-registro:hover {
+  background: #7d00a0;
+  color: white;
+}
+
+.form-container p {
+    margin-top: 1.5rem;
+    color: var(--color_text-tertiary);
+    text-align: center;
+}
+
+.form-container a {
+    color: var(--main_color-primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.form-container a:hover {
+    text-decoration: underline;
+}
+
+/* --- ESTILOS PARA TRANSICIÓN SUAVE DE PÁGINA (VERSIÓN MEJORADA) --- */
+.page-transition {
+  opacity: 0; /* Las páginas comienzan invisibles por defecto */
+  transition: opacity 300ms ease-in-out;
+}
+
+.page-transition.is-visible {
+  opacity: 1; /* Clase que aplicamos para que la página aparezca suavemente */
+}
+
+/* --- ESTILOS PARA EL CARRITO OFFCANVAS --- */
+.offcanvas-cart-item {
+  display: flex;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--footer-border);
+}
+
+.offcanvas-cart-item img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-right: 15px;
+}
+
+.offcanvas-cart-item-details {
+  flex-grow: 1;
+}
+
+.offcanvas-cart-item-details h6 {
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+.offcanvas-cart-item-details .price {
+  color: var(--color_text-primary);
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.offcanvas-cart-item-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.offcanvas-cart-item-actions .quantity-selector {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.offcanvas-cart-item-actions .quantity-btn {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.offcanvas-cart-item-actions .quantity-input {
+  width: 30px;
+  text-align: center;
+  border: none;
+  background: none;
+}
+
+.offcanvas-cart-item-actions .remove-btn {
+  color: var(--color_text-tertiary);
+  text-decoration: none;
+  font-size: 0.8rem;
+}
+
+.offcanvas-cart-item-actions .remove-btn:hover {
+  color: red;
+  text-decoration: underline;
+}
+
+/* --- ESTILOS MEJORADOS PARA CONTROLES DE ADMIN --- */
+
+/* Contenedor de los botones de admin */
+#admin-controls {
+    display: flex; /* Asegura que se muestre como flexbox cuando sea visible */
+    align-items: center;
+}
+
+/* Estilo para el botón de cerrar sesión */
+#logout-btn {
+    color: var(--color_text-tertiary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+#logout-btn:hover {
+    color: red;
+    text-decoration: underline;
+}
