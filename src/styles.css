@@ -1,4 +1,3 @@
-
 /* === TheHub/admin/admin.css === */
 /*
  * Hoja de Estilos para el Panel de Administrador de The Hub
@@ -24,10 +23,9 @@ body.admin-body {
     width: 260px;
     flex-shrink: 0; /* Evita que el sidebar se encoja */
     padding: 2rem 1.5rem;
-
     /* --- Efecto "Glassmorphism" --- */
     background-color: rgba(30, 30, 30, 0.4); /* Fondo oscuro semi-transparente */
-    backdrop-filter: blur(20px);               /* El efecto de desenfoque (blur) */
+    backdrop-filter: blur(20px); /* El efecto de desenfoque (blur) */
     border-right: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 0 20px 20px 0; /* Esquinas redondeadas solo en el lado derecho */
     box-shadow: var(--shadow-card); /* Reutilizamos la sombra de tu style.css */
@@ -159,21 +157,18 @@ body.admin-body {
   --footer-text: #555;
   --footer-border: #e9e9e9;
   --footer-highlight: #8A2BE2;
-
   /* Tamaños de texto */
   --lowtext_font_size: 16px;
   --text_size_tittle: 40px;
   --text_tittle_card: 24px;
   --text_tittle_cardv2: 20px;
   --text_paragraph: 16px;
-
   /* Sombras */
   --box_shadow-primary: 0px 6px 50px -20px rgba(0, 0, 0, 0.2);
   --shadow-header: 0 2px 8px rgba(0, 0, 0, 0.1);
   --shadow-card: 0 6px 18px rgba(0, 0, 0, 0.1);
   --shadow-card-hover: 0 10px 25px rgba(0, 0, 0, 0.25);
   --shadow-highlight: 0px 6px 50px -20px rgba(0, 0, 0, 0.2);
-
   /* Animaciones */
   --transition-fast: all 0.2s ease;
   --transition-medium: all 0.3s ease;
@@ -194,91 +189,94 @@ body {
   overflow-x: hidden; /* Prevenir scroll horizontal */
 }
 
-/* Header */
-header {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  box-shadow: var(--shadow-header);
-  position: sticky;
+/* === HEADER / NAVBAR (glass + grid de 3 columnas) === */
+.site-header {
+  position: sticky; /* cambia a fixed si la quieres siempre fija */
   top: 0;
   z-index: 1000;
+  /* Glassmorphism */
+  background: rgba(255, 255, 255, 0.65);
+  -webkit-backdrop-filter: saturate(140%) blur(14px);
+  backdrop-filter: saturate(140%) blur(14px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 8px 30px rgba(17, 24, 39, 0.08);
+
+  isolation: isolate; /* evita artefactos con pseudo-elementos detrás */
 }
 
-.main-content-padding {
-  padding-top: 90px; /* Ajusta este valor si tu header es más alto o bajo */
+/* Fallback si el navegador no soporta backdrop-filter */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .site-header { background: rgba(255, 255, 255, 0.92); }
 }
 
+/* Layout: [ logo | menú centro | acciones derecha ] */
+.nav-grid {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+  min-height: 72px;
+  white-space: nowrap;              /* evita saltos a 2 filas en desktop */
+}
+
+/* Menú central en una sola fila */
+.menu-center { overflow: hidden; }
+.menu-center .nav { flex-wrap: nowrap; }
+
+/* Acciones alineadas a la derecha sin romper */
+.actions-right { flex-wrap: nowrap; }
+
+/* Logo consistente */
 .logo img {
-  width: 200px;
-  height: auto;
+  display: block;
+  height: 38px;                     /* ajusta a tu gusto */
+  width: auto;
 }
 
-.site-header .btn__text {
-  margin-top: 0;
+/* Padding vertical del contenedor dentro del header */
+.site-header .container {
+  padding-top: .6rem;
+  padding-bottom: .6rem;
 }
 
-.header__layout {
-  width: 100%;
+/* Estilos de enlaces del menú (look limpio) */
+.menu-center .nav-link,
+.menu nav ul li a {
+  font-weight: 500;
+  color: #111827;
+  font-size: 16px;
+  position: relative;
+  transition: var(--transition-medium);
+  text-decoration: none;
+}
+.menu-center .nav-link:hover,
+.menu nav ul li a:hover {
+  color: #6d28d9; /* morado de marca */
+  text-decoration: underline;
 }
 
-.header__actions {
-  flex-shrink: 0;
-}
-
-.header__actions > * {
-  white-space: nowrap;
-}
-
-.header__menu nav ul {
-  flex-wrap: wrap;
-}
-
-@media (min-width: 992px) {
-  .header__menu nav ul {
-    flex-wrap: nowrap;
-  }
-}
-
+/* Espaciado horizontal entre items del menú */
+.menu-center .nav > li,
 .menu nav ul li {
   margin: 0 16px;
 }
 
-.menu nav ul li a {
-  color: var(--color_text-secundary);
-  font-size: 16px;
-  position: relative;
-  transition: var(--transition-medium);
+/* Evitar cortes en botones/acciones */
+.header__actions,
+.actions-right > * { white-space: nowrap; }
+
+/* Compensación del contenido por el header sticky/fixed */
+.main-content-padding {
+  padding-top: 0; /* súbelo a ~100–120px si usas position: fixed */
 }
 
-.menu nav ul li a:hover {
-  color: var(--color_text-primary);
+/* --- Responsive --- */
+@media (max-width: 992px) {
+  /* Permite que el menú pueda pasar a varias filas en móviles si es necesario */
+  .menu-center .nav { flex-wrap: wrap; justify-content: center; }
+  .nav-grid { gap: 12px; }
 }
 
-.btn__search {
-  padding: 8px 40px;
-  border: 2px solid var(--main_color-primary);
-  border-radius: 15px;
-  font-weight: 500;
-  margin: 0 20px;
-  transition: var(--transition-medium);
-  color: var(--color_text-secundary);
-  text-decoration: none;
-}
-
-.btn__search:hover {
-  color: white;
-  background: var(--main_color-primary);
-}
-
-.SocialMedia a {
-  margin: 0 10px;
-  color: var(--color_text-secundary);
-  transition: var(--transition-medium);
-}
-
-.SocialMedia a:hover {
-  color: var(--color_text-primary);
-}
 
 /* Cover Section */
 .container__cover {
@@ -993,7 +991,49 @@ header {
     transition: color 0.2s ease;
 }
 
+/* ——— CIERRA la regla anterior ——— */
 #logout-btn:hover {
-    color: red;
-    text-decoration: underline;
+  color: red;
+  text-decoration: underline;
+}
+/* ——— FIN cierre ——— */
+
+
+/* Acceder = igual a Carrito pero morado (solo en el header) */
+.site-header a.btn__text {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+
+  /* estilo pill como Carrito */
+  background: transparent;
+  color: var(--main_color-primary);
+  border: 1px solid var(--main_color-primary);
+  border-radius: 999px;
+
+  /* igual escala */
+  padding: .5rem 1rem;
+  line-height: 1;
+  font-weight: 500;
+  text-decoration: none;
+  transition: var(--transition-medium);
+
+  /* sobre-escribe el margen del estilo genérico */
+  margin-top: 0;
+}
+
+/* Hover coherente */
+.site-header a.btn__text:hover {
+  background: var(--main_color-primary);
+  color: #fff;
+  text-decoration: none;
+}
+
+/* Altura visual pareja con el botón Carrito */
+@media (min-width: 992px) {
+  .site-header a.btn__text,
+  .site-header .btn.btn-outline-secondary.rounded-pill {
+    min-height: 40px;
+  }
 }
