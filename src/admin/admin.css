@@ -1,0 +1,138 @@
+/*
+ * Hoja de Estilos para el Panel de Administrador de The Hub
+ */
+
+/* Estilos para el body de las páginas de admin */
+body {
+    font-family: "Google Sans", "Poppins", sans-serif; 
+    /* ¡Hemos movido las propiedades de background de aquí... */
+}
+
+/* Contenedor principal para el layout (sidebar + contenido) */
+.admin-wrapper {
+    display: flex;
+    min-height: 100vh;
+    
+    /* ...hacia aquí! Y corregimos la ruta de la imagen. */
+    background-image: url('/TheHub/images/bg/bg.png'); 
+    background-size: cover;
+    background-attachment: fixed;
+    background-position: center;
+}
+
+/* Menú Lateral (Sidebar) con efecto de vidrio esmerilado */
+.admin-sidebar {
+    width: 260px;
+    flex-shrink: 0; /* Evita que el sidebar se encoja */
+    padding: 2rem 1.5rem;
+
+    /* --- Efecto "Glassmorphism" --- */
+    background-color: rgba(30, 30, 30, 0.4); /* Fondo oscuro semi-transparente */
+    backdrop-filter: blur(20px);               /* El efecto de desenfoque (blur) */
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0 20px 20px 0; /* Esquinas redondeadas solo en el lado derecho */
+    box-shadow: var(--shadow-card); /* Reutilizamos la sombra de tu style.css */
+}
+
+.admin-sidebar .sidebar-header {
+    margin-bottom: 2.5rem;
+    text-align: center;
+}
+
+.admin-sidebar .sidebar-header a {
+    text-decoration: none;
+}
+
+.admin-sidebar .sidebar-header img {
+    max-width: 150px;
+    margin-bottom: 0.5rem;
+}
+
+/* Estilo para los enlaces de navegación del menú */
+.admin-sidebar .nav-link {
+    color: #f0f0f0; /* Texto claro para que contraste con el fondo */
+    font-weight: 500;
+    padding: 0.8rem 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 10px;
+    transition: var(--transition-fast); /* Reutilizamos la animación de tu style.css */
+}
+
+.admin-sidebar .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    transform: translateX(5px);
+}
+
+.admin-sidebar .nav-link.active {
+    background-color: var(--main_color-primary); /* Reutilizamos el color principal de tu tienda */
+    color: #fff;
+    font-weight: bold;
+}
+
+/* Botón de Cerrar Sesión al final del menú */
+.admin-sidebar .logout-section {
+    margin-top: auto; /* Empuja esta sección al fondo */
+}
+
+/* Contenedor para el contenido principal a la derecha */
+.admin-content {
+    flex-grow: 1; /* Hace que ocupe todo el espacio restante */
+    padding: 2.5rem;
+    color: #fff; /* Texto blanco para el contenido */
+}
+
+.admin-content h1 {
+    font-weight: 700;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5); /* Sombra para legibilidad */
+}
+
+/* --- ESTILO PARA PANELES DE CONTENIDO GENERAL (Glassmorphism) --- */
+.content-panel {
+    background-color: rgba(30, 30, 30, 0.4);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: var(--shadow-card);
+}
+
+.content-panel h1, .content-panel p, .content-panel h4 {
+    text-shadow: none; /* Quitamos la sombra de texto general para que se vea más nítido dentro del panel */
+}
+
+/* --- ESTILOS PARA LA TABLA DE PRODUCTOS --- */
+.table-container {
+    background-color: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 20px; /* Esquinas redondeadas */
+    padding: 1rem;
+    box-shadow: var(--shadow-card);
+}
+
+.table {
+    background-color: transparent; /* HACE LA TABLA TRANSPARENTE */
+    color: #fff; /* Asegura que el texto dentro sea blanco y legible */
+}
+
+.table thead th {
+    background-color: transparent !important; /* Hacemos el fondo del header transparente */
+    color: #fff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 1rem;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Hacemos el hover visible */
+}
+
+.table tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-top: 1px solid rgba(255, 255, 255, 0.1); /* Línea sutil para separar filas */
+}

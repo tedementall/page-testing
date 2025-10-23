@@ -1,4 +1,4 @@
-import axios from "axios"
+import axios from "../lib/miniAxios" // 👈 usamos tu cliente personalizado
 
 const TOKEN_KEY = import.meta.env.VITE_TOKEN_KEY ?? "THEHUB_TOKEN"
 
@@ -9,7 +9,7 @@ function getStoredToken() {
   try {
     return window.localStorage.getItem(TOKEN_KEY)
   } catch (error) {
-    console.error("Error reading auth token from storage", error)
+    console.error("Error leyendo el token desde localStorage", error)
     return null
   }
 }
@@ -23,7 +23,7 @@ function persistToken(token) {
       window.localStorage.setItem(TOKEN_KEY, token)
     }
   } catch (error) {
-    console.error("Error saving auth token to storage", error)
+    console.error("Error guardando el token en localStorage", error)
   }
 }
 
@@ -47,18 +47,24 @@ export function onUnauthorized(callback) {
   }
 }
 
-const authBaseURL = import.meta.env.VITE_XANO_AUTH_BASE
-const coreBaseURL = import.meta.env.VITE_XANO_CORE_BASE
+// URLs base desde .env (Vite)
+const authBaseURL = import.meta.env.VITE_XANO_AUTH_BASE ?? "https://x8ki-let1-twmt.n7.xano.io"
+const coreBaseURL = import.meta.env.VITE_XANO_CORE_BASE ?? "https://x8ki-let1-twmt.n7.xano.io"
 
+// --- Instancias basadas en miniAxios ---
 const httpAuth = axios.create({
-  baseURL: authBaseURL
+  baseURL: authBaseURL,
+  withCredentials: false, // 🚫 no enviamos cookies (solo Bearer)
 })
 
 const httpCore = axios.create({
-  baseURL: coreBaseURL
+  baseURL: coreBaseURL,
+  withCredentials: false,
 })
 
+// --- Interceptores (adaptados al sistema miniAxios) ---
 function applyInterceptors(instance) {
+  // Agrega token automáticamente
   instance.interceptors.request.use((config) => {
     const token = getStoredToken()
     if (token) {
@@ -68,6 +74,7 @@ function applyInterceptors(instance) {
     return config
   })
 
+  // Manejo de errores (401 → logout)
   instance.interceptors.response.use(
     (response) => response,
     (error) => {
@@ -77,11 +84,11 @@ function applyInterceptors(instance) {
           try {
             callback(error)
           } catch (callbackError) {
-            console.error("Error in unauthorized subscriber", callbackError)
+            console.error("Error en callback de unauthorized", callbackError)
           }
         })
       }
-      return Promise.reject(error)
+      throw error
     }
   )
 }

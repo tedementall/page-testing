@@ -5,6 +5,7 @@ import { getToken, onUnauthorized } from "../api/http"
 
 const AuthContext = createContext(null)
 
+// --- La función para extraer errores está bien ---
 function extractErrorMessage(error, fallback) {
   if (!error) return fallback
   const responseData = error?.response?.data
@@ -39,6 +40,7 @@ function extractErrorMessage(error, fallback) {
   return fallback
 }
 
+// --- El cálculo del estado inicial está bien ---
 const initialStatus = (() => {
   try {
     return getToken() ? "checking" : "unauthenticated"
@@ -50,9 +52,14 @@ const initialStatus = (() => {
 export function AuthProvider({ children }) {
   const navigate = useNavigate()
   const location = useLocation()
-  const [user, setUser] = useState(null)
-  const [status, setStatus] = useState(initialStatus)
-  const [isLoading, setIsLoading] = useState(initialStatus === "checking")
+
+  // --- INICIO DE LA REVERSIÓN ---
+  // Volvemos a los valores iniciales originales
+  const [user, setUser] = useState(null); // <-- Vuelve a null
+  const [status, setStatus] = useState(initialStatus); // <-- Vuelve a initialStatus
+  const [isLoading, setIsLoading] = useState(initialStatus === "checking"); // <-- Vuelve a esto
+  // --- FIN DE LA REVERSIÓN ---
+
   const [authError, setAuthError] = useState(null)
 
   const applyLogout = useCallback(() => {
@@ -62,6 +69,7 @@ export function AuthProvider({ children }) {
     setIsLoading(false)
   }, [])
 
+  // Este useEffect para manejar 401 está bien
   useEffect(() => {
     const unsubscribe = onUnauthorized(() => {
       setAuthError("Tu sesión expiró. Inicia sesión nuevamente.")
@@ -74,9 +82,19 @@ export function AuthProvider({ children }) {
     return unsubscribe
   }, [applyLogout, location.pathname, navigate])
 
+  // Este useEffect verifica el token al cargar la app
   useEffect(() => {
     let cancelled = false
     const token = getToken()
+
+    // Corrección del bucle infinito (evita verificar en /login)
+    if (location.pathname === "/login") {
+      setStatus("unauthenticated")
+      setIsLoading(false)
+      return;
+    }
+
+    // Si no hay token, no hacemos nada
     if (!token) {
       setStatus("unauthenticated")
       setIsLoading(false)
@@ -85,6 +103,7 @@ export function AuthProvider({ children }) {
       }
     }
 
+    // Si hay token, intentamos obtener el perfil
     setIsLoading(true)
     setStatus("checking")
 
@@ -99,12 +118,17 @@ export function AuthProvider({ children }) {
         if (cancelled) return
         const message = extractErrorMessage(error, "Tu sesión expiró. Inicia sesión nuevamente.")
         setAuthError(message)
-        if (error?.response?.status !== 401) {
+
+        // Corrección: Solo redirige si el error es 401
+        if (error?.response?.status === 401) {
           applyLogout()
           navigate("/login", {
             replace: true,
             state: { from: location.pathname }
           })
+        } else {
+          // Si es otro error (CORS, red, etc.), solo borra el token
+          applyLogout()
         }
       })
       .finally(() => {
@@ -116,7 +140,9 @@ export function AuthProvider({ children }) {
     return () => {
       cancelled = true
     }
-  }, [applyLogout, location.pathname, navigate])
+  }, [applyLogout, location.pathname, navigate]) // El array de dependencias vuelve a la normalidad
+
+  // --- El resto de las funciones (login, signup, logout) están bien ---
 
   const login = useCallback(
     async (credentials) => {
@@ -128,7 +154,7 @@ export function AuthProvider({ children }) {
         const profile = await AuthApi.me()
         setUser(profile)
         setStatus("authenticated")
-        return profile
+        return profile // Devolvemos el perfil para la redirección de roles
       } catch (error) {
         const message = extractErrorMessage(error, "No pudimos iniciar sesión. Verifica tus credenciales.")
         setAuthError(message)

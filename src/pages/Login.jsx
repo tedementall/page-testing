@@ -116,9 +116,7 @@ export default function Login() {
         <p>
           ¿No tienes una cuenta? <a href="/register">Regístrate aquí</a>
         </p>
-        <p>
-          <a href="/admin/login">Acceso Administrador</a>
-        </p>
+        
         
       </div>
     </motion.div>
