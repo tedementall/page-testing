@@ -1,55 +1,22 @@
 import { useState } from "react"
 import ProductQuickView from "./ProductQuickView"
 import { PRODUCTS } from "../data/products"
-import { useCart } from "../context/CartContext"
 import { formatCurrency } from "../utils/currency"
 
-function shuffle(array) {
-  const copy = [...array]
-  for (let i = copy.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[copy[i], copy[j]] = [copy[j], copy[i]]
-  }
-  return copy
-}
-
-function getRelatedProducts(product) {
-  if (!product) return []
-
-  const sameCategory = shuffle(
-    PRODUCTS.filter((item) => item.id !== product.id && item.category === product.category)
-  )
-
-  const fallback = shuffle(
-    PRODUCTS.filter((item) => item.id !== product.id && item.category !== product.category)
-  )
-
-  const selection = [...sameCategory, ...fallback]
-  return selection.slice(0, 4)
-}
-
 export default function Products() {
-  const { addItem } = useCart()
-  const [quickViewData, setQuickViewData] = useState(null)
+  const [quickViewProduct, setQuickViewProduct] = useState(null)
 
   const openQuickView = (product) => {
     if (!product) {
-      setQuickViewData(null)
+      setQuickViewProduct(null)
       return
     }
 
-    setQuickViewData({
-      product,
-      related: getRelatedProducts(product)
-    })
-  }
-
-  const handleAddToCart = (product, quantity) => {
-    addItem(product, quantity)
+    setQuickViewProduct(product)
   }
 
   const handleClose = () => {
-    setQuickViewData(null)
+    setQuickViewProduct(null)
   }
 
   return (
@@ -90,13 +57,7 @@ export default function Products() {
         </div>
       </div>
 
-      <ProductQuickView
-        product={quickViewData?.product ?? null}
-        relatedProducts={quickViewData?.related ?? []}
-        onAddToCart={handleAddToCart}
-        onClose={handleClose}
-        onSelectProduct={openQuickView}
-      />
+      <ProductQuickView product={quickViewProduct} onClose={handleClose} allProducts={PRODUCTS} />
     </section>
   )
 }
