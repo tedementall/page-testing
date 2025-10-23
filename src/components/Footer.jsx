@@ -1,3 +1,5 @@
+import React from 'react'; // ¡Asegúrate de tener React importado!
+
 const FOOTER_LINKS = [
   {
     title: "Compañía",
@@ -23,7 +25,7 @@ const FOOTER_LINKS = [
       { label: "Smart Home", href: "#productos" }
     ]
   }
-]
+];
 
 export default function Footer() {
   return (
@@ -31,7 +33,7 @@ export default function Footer() {
       <div className="container">
         <div className="row gy-4">
           <div className="col-12 col-lg-4 footer-column">
-            <img src="/TheHub/images/logo colorido.png" alt="The Hub" className="footer-logo" />
+            <img src="/TheHub/images/ic_thehub_logo.png" alt="The Hub" className="footer-logo" />
             <p>
               Conectamos tu experiencia digital con productos cuidadosamente seleccionados y un
               servicio cercano. ¡Hablemos y creemos algo increíble juntos!
@@ -65,14 +67,40 @@ export default function Footer() {
             </div>
           ))}
 
+          {/* --- INICIO DEL BLOQUE REEMPLAZADO --- */}
+          {/* Reemplazamos el formulario de "Únete a la comunidad" 
+            por la información de contacto que querías.
+          */}
           <div className="col-12 col-lg-4 footer-column">
-            <h4>Únete a la comunidad</h4>
-            <p>Recibe lanzamientos exclusivos, descuentos y tips para potenciar tu ecosistema tech.</p>
-            <form className="newsletter-form" onSubmit={(event) => event.preventDefault()}>
-              <input type="email" placeholder="Ingresa tu correo" aria-label="Correo electrónico" />
-              <button type="submit">Suscribirme</button>
-            </form>
+            <h4>Contáctenos</h4>
+            {/* Asumiendo que 'styles.css' ya tiene la clase '.contact-list' 
+              para dar estilo a los iconos, como vimos en un paso anterior.
+            */}
+            <ul className="contact-list">
+              <li>
+                {/* Usamos los iconos de Font Awesome que ya tienes 
+                  instalados (fas = solid) 
+                */}
+                <i className="fas fa-phone"></i>
+                <a href="tel:+569XXXXXXXX">+56 9 XXXX XXXX</a>
+              </li>
+              <li>
+                <i className="fas fa-envelope"></i>
+                <a href="mailto:contacto@thehub.cl">contacto@thehub.cl</a>
+              </li>
+              <li>
+                <i className="fas fa-map-marker-alt"></i>
+                {/* Hacemos que la dirección sea un enlace a Google Maps 
+                  para que mantenga el estilo del resto de los enlaces.
+                */}
+                <a href="https://www.google.com/maps/place/Maip%C3%BA" target="_blank" rel="noreferrer">
+                  Maipú, Santiago, Chile
+                </a>
+              </li>
+            </ul>
           </div>
+          {/* --- FIN DEL BLOQUE REEMPLAZADO --- */}
+
         </div>
         <div className="footer-bottom mt-4 d-flex flex-column flex-md-row justify-content-between align-items-center">
           <p className="mb-0">© {new Date().getFullYear()} The Hub. Todos los derechos reservados.</p>
@@ -84,5 +112,5 @@ export default function Footer() {
         </div>
       </div>
     </footer>
-  )
+  );
 }

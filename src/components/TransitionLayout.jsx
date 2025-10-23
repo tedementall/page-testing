@@ -1,22 +1,30 @@
-import { useEffect, useLayoutEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
+// 1. ¡Importa los componentes de Framer Motion!
+import { AnimatePresence } from "framer-motion";
 
+/**
+ * Este componente es el orquestador de las animaciones.
+ * No define CÓMO se anima la página, solo CUÁNDO.
+ */
 export default function TransitionLayout() {
   const location = useLocation();
-  const [visible, setVisible] = useState(false);
-
-  useLayoutEffect(() => {
-    setVisible(false);
-  }, [location.key]);
-
-  useEffect(() => {
-    const frame = requestAnimationFrame(() => setVisible(true));
-    return () => cancelAnimationFrame(frame);
-  }, [location.key]);
 
   return (
-    <div className={`page-transition ${visible ? "is-visible" : ""}`}>
+    // 'AnimatePresence' es el componente que "ve" cuándo 
+    // un componente hijo (el Outlet) va a ser eliminado
+    // y espera a que termine su animación de "salida" (exit).
+    <AnimatePresence 
+      mode="wait" 
+      location={location} 
+      key={location.pathname}
+    >
+      {/* 'Outlet' es el componente de React Router que renderiza 
+        la página actual (Home, Login, etc.). 
+        
+        AnimatePresence buscará un <motion.div> dentro 
+        del Outlet para animarlo.
+      */}
       <Outlet />
-    </div>
+    </AnimatePresence>
   );
 }

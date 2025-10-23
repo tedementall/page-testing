@@ -27,8 +27,7 @@ export default function Trust() {
           </div>
           <div className="col-12 col-lg-6">
             <p className="text__about">
-              Diseñamos cada detalle para que enamores a tus clientes desde la presentación hasta el
-              soporte post venta. Somos aliados de tu marca.
+              Diseñamos cada detalle para que te enamores de tus productos desde el primer vistazo.
             </p>
           </div>
         </div>

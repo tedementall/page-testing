@@ -1,21 +1,21 @@
 const TEAM_MEMBERS = [
   {
-    name: "Valentina Ortiz",
+    name: "Maite (Mini)",
     role: "Fundadora & CMO",
     image: "/TheHub/images/team/team-1.png"
   },
   {
-    name: "Nicolás Herrera",
+    name: "Maite (Grande)",
     role: "Director de Producto",
     image: "/TheHub/images/team/team-2.png"
   },
   {
-    name: "Marcela Rojas",
+    name: "Zeus (Mini)",
     role: "Lead Experience Designer",
     image: "/TheHub/images/team/team-3.png"
   },
   {
-    name: "Diego Fernández",
+    name: "Zeus (Grande)",
     role: "Head of Customer Care",
     image: "/TheHub/images/team/team-4.png"
   }
