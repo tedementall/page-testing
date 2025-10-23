@@ -2,6 +2,32 @@ import { Link } from "react-router-dom"
 import { useCallback } from "react"
 import { useCart } from "../context/CartContext"
 import { formatCurrency } from "../utils/currency"
+// 1. Importamos 'motion' de framer-motion
+import { motion } from "framer-motion"
+
+// 2. Definimos las variantes de animación (las mismas que en Login.jsx y Home.jsx)
+const pageVariants = {
+  initial: {
+    opacity: 0,
+    x: "-50vw" // Inicia deslizando desde la izquierda
+  },
+  in: {
+    opacity: 1,
+    x: 0 // Termina en el centro
+  },
+  out: {
+    opacity: 0,
+    x: "50vw" // Se va deslizando hacia la derecha
+  }
+}
+
+// 3. Definimos el tipo de transición (la misma que en Login.jsx y Home.jsx)
+const pageTransition = {
+  type: "tween",
+  ease: "easeInOut",
+  duration: 0.4 // Duración de la animación en segundos
+}
+
 
 export default function CartPage() {
   const { items, totalPrice, incrementItem, decrementItem, removeItem, isMutating, isLoading } = useCart()
@@ -33,9 +59,18 @@ export default function CartPage() {
     [removeItem]
   )
 
+  // --- PRIMER RETURN (Carrito Vacío) ---
   if (!items.length) {
     return (
-      <main className="main-content-padding">
+      // 4. Aplicamos 'motion.main' aquí
+      <motion.main 
+        className="main-content-padding"
+        initial="initial"
+        animate="in"
+        exit="out"
+        variants={pageVariants}
+        transition={pageTransition}
+      >
         <div className="container py-5 text-center">
           <h1 className="mb-3">Tu carrito</h1>
           <p className="text-muted mb-4">
@@ -45,12 +80,21 @@ export default function CartPage() {
             Seguir descubriendo productos
           </Link>
         </div>
-      </main>
+      </motion.main>
     )
   }
 
+  // --- SEGUNDO RETURN (Carrito Lleno) ---
   return (
-    <main className="main-content-padding">
+    // 5. Aplicamos 'motion.main' aquí también
+    <motion.main 
+      className="main-content-padding"
+      initial="initial"
+      animate="in"
+      exit="out"
+      variants={pageVariants}
+      transition={pageTransition}
+    >
       <div className="container py-5">
         <h1 className="mb-4">Tu carrito</h1>
         <div className="row g-4">
@@ -58,19 +102,7 @@ export default function CartPage() {
             <div className="table-responsive">
               <table className="table align-middle">
                 <thead>
-                  <tr>
-                    <th scope="col">Producto</th>
-                    <th scope="col" className="text-center">
-                      Precio
-                    </th>
-                    <th scope="col" className="text-center">
-                      Cantidad
-                    </th>
-                    <th scope="col" className="text-end">
-                      Total
-                    </th>
-                    <th scope="col" className="text-end" aria-label="Acciones"></th>
-                  </tr>
+                  {/* ... (tu thead) ... */}
                 </thead>
                 <tbody>
                   {items.map((item) => {
@@ -79,6 +111,7 @@ export default function CartPage() {
                     const price = product.price ?? 0
                     return (
                       <tr key={item.id}>
+                        {/* ... (tu <td> de producto) ... */}
                         <td>
                           <div className="d-flex align-items-center gap-3">
                             {image ? (
@@ -98,6 +131,7 @@ export default function CartPage() {
                           </div>
                         </td>
                         <td className="text-center">{formatCurrency(price)}</td>
+                        {/* ... (tu <td> de cantidad) ... */}
                         <td className="text-center">
                           <div className="input-group input-group-sm quantity-selector mx-auto" style={{ maxWidth: 140 }}>
                             <button
@@ -126,6 +160,7 @@ export default function CartPage() {
                           </div>
                         </td>
                         <td className="text-end">{formatCurrency(price * item.quantity)}</td>
+                        {/* ... (tu <td> de eliminar) ... */}
                         <td className="text-end">
                           <button
                             type="button"
@@ -143,6 +178,7 @@ export default function CartPage() {
               </table>
             </div>
           </div>
+          {/* ... (tu columna de Resumen del carrito) ... */}
           <div className="col-12 col-lg-4">
             <div className="p-4 rounded-4 shadow-sm h-100 bg-white">
               <h2 className="h5 mb-3">Resumen del carrito</h2>
@@ -162,6 +198,6 @@ export default function CartPage() {
           </div>
         </div>
       </div>
-    </main>
+    </motion.main>
   )
 }

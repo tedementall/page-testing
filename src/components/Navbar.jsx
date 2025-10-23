@@ -1,21 +1,26 @@
 import { useCallback, useState } from "react";
+// --- CAMBIO 1: Importamos Link (que ya tenías) y HashLink ---
 import { Link, useLocation } from "react-router-dom";
+import { HashLink } from "react-router-hash-link";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 
+// --- CAMBIO 2: Añadimos una barra "/" a las rutas (href) ---
+// Esto le dice a HashLink que primero vaya a la página de inicio (/)
+// y LUEGO busque la sección (#nosotros).
 const NAV_LINKS = [
-  { label: "Inicio", href: "#home" },
-  { label: "Nosotros", href: "#nosotros" },
-  { label: "Productos", href: "#productos" },
-  { label: "Equipo", href: "#equipo" },
-  { label: "Contacto", href: "#contacto" },
+  { label: "Inicio", href: "/#home" },
+  { label: "Nosotros", href: "/#nosotros" },
+  { label: "Productos", href: "/#productos" },
+  { label: "Equipo", href: "/#equipo" },
+  { label: "Contacto", href: "/#contacto" },
 ];
 
 const SOCIAL_LINKS = [
-  { icon: "fab fa-facebook-f", href: "https://www.facebook.com", label: "Facebook" },
-  { icon: "fab fa-instagram", href: "https://www.instagram.com", label: "Instagram" },
-  { icon: "fab fa-twitter", href: "https://twitter.com", label: "Twitter" },
-  { icon: "fab fa-tiktok", href: "https://www.tiktok.com", label: "TikTok" },
+  { icon: "fab fa-facebook-f", href: "https://www.facebook.com/people/Victor-Ramos/pfbid037vnDNaLUbNNt1xRC9aFdb76bMrhEkr3sp7iTp8C74V4x6RPozECXNxgFrDuezqi4l/", label: "Facebook" },
+  { icon: "fab fa-instagram", href: "https://www.instagram.com/thehubshopping/", label: "Instagram" },
+  { icon: "fab fa-x", href: "https://x.com/TheHubShopp", label: "Twitter" },
+  { icon: "fab fa-youtube", href: "https://www.youtube.com/@Thehubshopping", label: "YouTube" },
 ];
 
 export default function Navbar() {
@@ -25,6 +30,14 @@ export default function Navbar() {
   const { isAuthenticated, user, logout, isLoading: authLoading } = useAuth();
   const toggleMenu = () => setMenuOpen((p) => !p);
   const closeMenu = () => setMenuOpen(false);
+
+  // --- CAMBIO 3: Añadimos la función de scroll suave ---
+  const smoothScroll = (el) => {
+    el.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  };
 
   const handleLogout = useCallback(() => {
     setMenuOpen(false);
@@ -50,9 +63,11 @@ export default function Navbar() {
               <i className="fas fa-bars"></i>
             </button>
 
-            <a href="#home" className="logo d-flex align-items-center" onClick={closeMenu}>
+            {/* --- CAMBIO 4: El logo ahora es un <Link> a "/" --- */}
+            {/* Esto asegura que siempre vayas al inicio (top) de la página principal */}
+            <Link to="/" className="logo d-flex align-items-center" onClick={closeMenu}>
               <img src="/TheHub/images/Header-logo.png" alt="The Hub" className="img-fluid" />
-            </a>
+            </Link>
           </div>
 
           {/* Col 2: Menú central */}
@@ -61,7 +76,14 @@ export default function Navbar() {
               <ul className="nav mb-0 justify-content-center gap-4">
                 {NAV_LINKS.map((link) => (
                   <li key={link.label} className="nav-item" onClick={closeMenu}>
-                    <a href={link.href} className="nav-link">{link.label}</a>
+                    {/* --- CAMBIO 5: Usamos <HashLink> en lugar de <a> --- */}
+                    <HashLink 
+                      to={link.href} 
+                      className="nav-link" 
+                      scroll={smoothScroll} // Le decimos que use nuestra función de scroll
+                    >
+                      {link.label}
+                    </HashLink>
                   </li>
                 ))}
               </ul>
@@ -70,7 +92,15 @@ export default function Navbar() {
 
           {/* Col 3: Acciones derecha */}
           <div className="d-flex align-items-center justify-content-end gap-3 actions-right">
-            <a href="#productos" className="btn__search d-none d-sm-inline-block">Explorar</a>
+            
+            {/* --- CAMBIO 6 (BONUS): El botón "Explorar" también debe ser un HashLink --- */}
+            <HashLink 
+              to="/#productos" 
+              className="btn__search d-none d-sm-inline-block" 
+              scroll={smoothScroll}
+            >
+              Explorar
+            </HashLink>
 
             <div className="SocialMedia d-none d-md-flex align-items-center">
               {SOCIAL_LINKS.map((link) => (
@@ -88,6 +118,7 @@ export default function Navbar() {
               aria-controls="cartOffcanvas"
               onClick={closeMenu}
             >
+              {/* ... (el contenido de tu botón de carrito está bien) ... */}
               <i className="fas fa-shopping-cart"></i>
               <span className="d-none d-lg-inline">Carrito</span>
               {totalItems > 0 ? (
@@ -98,6 +129,7 @@ export default function Navbar() {
             </button>
 
             {isAuthenticated ? (
+              // ... (tu lógica de "Cerrar sesión" está bien) ...
               <div className="d-flex align-items-center gap-2">
                 <span className="text-nowrap small fw-semibold d-none d-lg-inline">{displayName}</span>
                 <button
@@ -110,6 +142,7 @@ export default function Navbar() {
                 </button>
               </div>
             ) : (
+              // Tu enlace de "Acceder" ya usa <Link>, ¡lo cual es perfecto!
               <Link
                 to="/login"
                 className="btn__text"
