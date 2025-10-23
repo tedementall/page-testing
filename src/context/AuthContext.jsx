@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
+import { useLocation, useNavigate } from "react-router-dom"
 import * as AuthApi from "../api/authApi"
 import { getToken, onUnauthorized } from "../api/http"
 
@@ -47,6 +48,8 @@ const initialStatus = (() => {
 })()
 
 export function AuthProvider({ children }) {
+  const navigate = useNavigate()
+  const location = useLocation()
   const [user, setUser] = useState(null)
   const [status, setStatus] = useState(initialStatus)
   const [isLoading, setIsLoading] = useState(initialStatus === "checking")
@@ -63,9 +66,13 @@ export function AuthProvider({ children }) {
     const unsubscribe = onUnauthorized(() => {
       setAuthError("Tu sesión expiró. Inicia sesión nuevamente.")
       applyLogout()
+      navigate("/login", {
+        replace: true,
+        state: { from: location.pathname }
+      })
     })
     return unsubscribe
-  }, [applyLogout])
+  }, [applyLogout, location.pathname, navigate])
 
   useEffect(() => {
     let cancelled = false
@@ -92,7 +99,13 @@ export function AuthProvider({ children }) {
         if (cancelled) return
         const message = extractErrorMessage(error, "Tu sesión expiró. Inicia sesión nuevamente.")
         setAuthError(message)
-        applyLogout()
+        if (error?.response?.status !== 401) {
+          applyLogout()
+          navigate("/login", {
+            replace: true,
+            state: { from: location.pathname }
+          })
+        }
       })
       .finally(() => {
         if (!cancelled) {
@@ -103,11 +116,12 @@ export function AuthProvider({ children }) {
     return () => {
       cancelled = true
     }
-  }, [applyLogout])
+  }, [applyLogout, location.pathname, navigate])
 
   const login = useCallback(
     async (credentials) => {
       setIsLoading(true)
+      setStatus("checking")
       setAuthError(null)
       try {
         await AuthApi.login(credentials)
@@ -130,6 +144,7 @@ export function AuthProvider({ children }) {
   const signup = useCallback(
     async (payload) => {
       setIsLoading(true)
+      setStatus("checking")
       setAuthError(null)
       try {
         await AuthApi.signup(payload)
@@ -152,7 +167,8 @@ export function AuthProvider({ children }) {
   const logout = useCallback(() => {
     setAuthError(null)
     applyLogout()
-  }, [applyLogout])
+    navigate("/login", { replace: true })
+  }, [applyLogout, navigate])
 
   const value = useMemo(
     () => ({
