@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 
 const NAV_LINKS = [
@@ -86,7 +87,9 @@ export default function Navbar() {
               ) : null}
             </button>
 
-            <a href="#contacto" className="btn__text">Acceder</a>
+            <Link to="/login" className="btn__text" onClick={closeMenu}>
+              Acceder
+            </Link>
           </div>
         </div>
       </div>

@@ -872,6 +872,24 @@ body {
     color: var(--color_text-tertiary);
 }
 
+/* --- ESTILOS PARA PÁGINA DE INICIO DE SESIÓN --- */
+
+.login-hero {
+  min-height: calc(100vh - 160px);
+  padding: 4rem 1rem 6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at top left, #ffe0f7 0%, #f1d6ff 35%, #cde5ff 70%, #f4f7ff 100%);
+}
+
+@media (max-width: 768px) {
+  .login-hero {
+    padding-top: 6rem;
+    padding-bottom: 4rem;
+  }
+}
+
 /* --- ESTILOS PARA FORMULARIOS DE LOGIN Y REGISTRO --- */
 
 .form-container {
