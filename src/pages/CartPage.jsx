@@ -1,16 +1,46 @@
 import { Link } from "react-router-dom"
+import { useCallback } from "react"
 import { useCart } from "../context/CartContext"
 import { formatCurrency } from "../utils/currency"
 
 export default function CartPage() {
-  const { items, totalPrice, incrementItem, decrementItem, removeItem } = useCart()
+  const { items, totalPrice, incrementItem, decrementItem, removeItem, isMutating, isLoading } = useCart()
+
+  const handleIncrement = useCallback(
+    (itemId) => {
+      incrementItem(itemId).catch((error) => {
+        console.error("No se pudo aumentar la cantidad", error)
+      })
+    },
+    [incrementItem]
+  )
+
+  const handleDecrement = useCallback(
+    (itemId) => {
+      decrementItem(itemId).catch((error) => {
+        console.error("No se pudo disminuir la cantidad", error)
+      })
+    },
+    [decrementItem]
+  )
+
+  const handleRemove = useCallback(
+    (itemId) => {
+      removeItem(itemId).catch((error) => {
+        console.error("No se pudo quitar el producto", error)
+      })
+    },
+    [removeItem]
+  )
 
   if (!items.length) {
     return (
       <main className="main-content-padding">
         <div className="container py-5 text-center">
           <h1 className="mb-3">Tu carrito</h1>
-          <p className="text-muted mb-4">Todavía no has agregado productos a tu carrito.</p>
+          <p className="text-muted mb-4">
+            {isLoading ? "Estamos cargando tu carrito..." : "Todavía no has agregado productos a tu carrito."}
+          </p>
           <Link to="/" className="btn__text">
             Seguir descubriendo productos
           </Link>
@@ -43,62 +73,72 @@ export default function CartPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {items.map((item) => (
-                    <tr key={item.id}>
-                      <td>
-                        <div className="d-flex align-items-center gap-3">
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            width={72}
-                            height={72}
-                            className="rounded-3"
-                            style={{ objectFit: "cover" }}
-                          />
-                          <div>
-                            <div className="fw-semibold">{item.name}</div>
-                            <div className="text-muted small">{item.category}</div>
+                  {items.map((item) => {
+                    const product = item.product ?? {}
+                    const image = product.image ?? (Array.isArray(product.images) ? product.images[0] : "")
+                    const price = product.price ?? 0
+                    return (
+                      <tr key={item.id}>
+                        <td>
+                          <div className="d-flex align-items-center gap-3">
+                            {image ? (
+                              <img
+                                src={image}
+                                alt={product.name ?? "Producto"}
+                                width={72}
+                                height={72}
+                                className="rounded-3"
+                                style={{ objectFit: "cover" }}
+                              />
+                            ) : null}
+                            <div>
+                              <div className="fw-semibold">{product.name}</div>
+                              <div className="text-muted small">{product.category}</div>
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="text-center">{formatCurrency(item.price)}</td>
-                      <td className="text-center">
-                        <div className="input-group input-group-sm quantity-selector mx-auto" style={{ maxWidth: 140 }}>
+                        </td>
+                        <td className="text-center">{formatCurrency(price)}</td>
+                        <td className="text-center">
+                          <div className="input-group input-group-sm quantity-selector mx-auto" style={{ maxWidth: 140 }}>
+                            <button
+                              className="btn btn-outline-secondary"
+                              type="button"
+                              onClick={() => handleDecrement(item.id)}
+                              disabled={isMutating}
+                            >
+                              -
+                            </button>
+                            <input
+                              className="form-control text-center"
+                              type="text"
+                              value={item.quantity}
+                              readOnly
+                              aria-label={`Cantidad para ${product.name ?? "producto"}`}
+                            />
+                            <button
+                              className="btn btn-outline-secondary"
+                              type="button"
+                              onClick={() => handleIncrement(item.id)}
+                              disabled={isMutating}
+                            >
+                              +
+                            </button>
+                          </div>
+                        </td>
+                        <td className="text-end">{formatCurrency(price * item.quantity)}</td>
+                        <td className="text-end">
                           <button
-                            className="btn btn-outline-secondary"
                             type="button"
-                            onClick={() => decrementItem(item.id)}
+                            className="btn btn-link text-danger p-0"
+                            onClick={() => handleRemove(item.id)}
+                            disabled={isMutating}
                           >
-                            -
+                            Eliminar
                           </button>
-                          <input
-                            className="form-control text-center"
-                            type="text"
-                            value={item.quantity}
-                            readOnly
-                            aria-label={`Cantidad para ${item.name}`}
-                          />
-                          <button
-                            className="btn btn-outline-secondary"
-                            type="button"
-                            onClick={() => incrementItem(item.id)}
-                          >
-                            +
-                          </button>
-                        </div>
-                      </td>
-                      <td className="text-end">{formatCurrency(item.price * item.quantity)}</td>
-                      <td className="text-end">
-                        <button
-                          type="button"
-                          className="btn btn-link text-danger p-0"
-                          onClick={() => removeItem(item.id)}
-                        >
-                          Eliminar
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
@@ -114,7 +154,7 @@ export default function CartPage() {
                 <Link to="/" className="btn btn-outline-secondary">
                   Seguir comprando
                 </Link>
-                <button type="button" className="btn__text">
+                <button type="button" className="btn__text" disabled={isMutating || isLoading}>
                   Finalizar compra
                 </button>
               </div>

@@ -5,7 +5,16 @@ import { formatCurrency } from "../utils/currency"
 
 export default function OffcanvasCart() {
   const navigate = useNavigate()
-  const { items, totalItems, totalPrice, incrementItem, decrementItem, removeItem } = useCart()
+  const {
+    items,
+    totalItems,
+    totalPrice,
+    incrementItem,
+    decrementItem,
+    removeItem,
+    isLoading,
+    isMutating
+  } = useCart()
 
   const handleGoToCart = useCallback(() => {
     if (typeof window !== "undefined" && window.bootstrap) {
@@ -20,6 +29,35 @@ export default function OffcanvasCart() {
   }, [navigate])
 
   const handleCheckout = () => {}
+
+  const handleIncrement = useCallback(
+    (itemId) => {
+      incrementItem(itemId).catch((error) => {
+        console.error("No se pudo aumentar la cantidad", error)
+      })
+    },
+    [incrementItem]
+  )
+
+  const handleDecrement = useCallback(
+    (itemId) => {
+      decrementItem(itemId).catch((error) => {
+        console.error("No se pudo disminuir la cantidad", error)
+      })
+    },
+    [decrementItem]
+  )
+
+  const handleRemove = useCallback(
+    (itemId) => {
+      removeItem(itemId).catch((error) => {
+        console.error("No se pudo quitar el producto", error)
+      })
+    },
+    [removeItem]
+  )
+
+  const busy = isLoading || isMutating
 
   return (
     <div
@@ -36,50 +74,59 @@ export default function OffcanvasCart() {
       </div>
       <div className="offcanvas-body d-flex flex-column">
         <div className="mb-4">
-          {items.length ? (
-            items.map((item) => (
-              <div key={item.id} className="offcanvas-cart-item">
-                <img src={item.image} alt={item.name} />
-                <div className="offcanvas-cart-item-details">
-                  <h6>{item.name}</h6>
-                  <div className="price">{formatCurrency(item.price)}</div>
-                  <div className="offcanvas-cart-item-actions">
-                    <div className="quantity-selector">
+          {busy ? (
+            <div className="text-center py-5 text-muted">Actualizando carrito...</div>
+          ) : items.length ? (
+            items.map((item) => {
+              const product = item.product ?? {}
+              const image = product.image ?? (Array.isArray(product.images) ? product.images[0] : "")
+              return (
+                <div key={item.id} className="offcanvas-cart-item">
+                  {image ? <img src={image} alt={product.name ?? "Producto"} /> : null}
+                  <div className="offcanvas-cart-item-details">
+                    <h6>{product.name}</h6>
+                    <div className="price">{formatCurrency(product.price)}</div>
+                    <div className="offcanvas-cart-item-actions">
+                      <div className="quantity-selector">
+                        <button
+                          className="quantity-btn"
+                          type="button"
+                          aria-label="Disminuir cantidad"
+                          onClick={() => handleDecrement(item.id)}
+                          disabled={isMutating}
+                        >
+                          -
+                        </button>
+                        <input
+                          className="quantity-input"
+                          type="text"
+                          readOnly
+                          value={item.quantity}
+                          aria-label="Cantidad"
+                        />
+                        <button
+                          className="quantity-btn"
+                          type="button"
+                          aria-label="Aumentar cantidad"
+                          onClick={() => handleIncrement(item.id)}
+                          disabled={isMutating}
+                        >
+                          +
+                        </button>
+                      </div>
                       <button
-                        className="quantity-btn"
+                        className="remove-btn bg-transparent border-0 p-0"
                         type="button"
-                        aria-label="Disminuir cantidad"
-                        onClick={() => decrementItem(item.id)}
+                        onClick={() => handleRemove(item.id)}
+                        disabled={isMutating}
                       >
-                        -
-                      </button>
-                      <input
-                        className="quantity-input"
-                        type="text"
-                        readOnly
-                        value={item.quantity}
-                        aria-label="Cantidad"
-                      />
-                      <button
-                        className="quantity-btn"
-                        type="button"
-                        aria-label="Aumentar cantidad"
-                        onClick={() => incrementItem(item.id)}
-                      >
-                        +
+                        Quitar
                       </button>
                     </div>
-                    <button
-                      className="remove-btn bg-transparent border-0 p-0"
-                      type="button"
-                      onClick={() => removeItem(item.id)}
-                    >
-                      Quitar
-                    </button>
                   </div>
                 </div>
-              </div>
-            ))
+              )
+            })
           ) : (
             <div className="text-center text-muted py-5">
               Tu carrito está vacío. ¡Descubre nuestros productos!
