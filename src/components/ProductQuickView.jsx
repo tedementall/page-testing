@@ -1,12 +1,25 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { formatCurrency } from "../utils/currency"
 import { useCart } from "../context/CartContext"
+import { ProductsApi } from "../api/coreApi"
 
 function pickRelated(all, current, n = 4) {
   const collection = Array.isArray(all) ? all : []
-  const sameCat = collection.filter((item) => item.category === current.category && item.id !== current.id)
-  const pool = sameCat.length >= n ? sameCat : collection.filter((item) => item.id !== current.id)
-  return pool.sort(() => Math.random() - 0.5).slice(0, n)
+  const filtered = collection.filter((item) => item && item.id && item.id !== current?.id)
+  const sameCategory = filtered.filter((item) => item.category && item.category === current?.category)
+  const base = sameCategory.length >= n ? sameCategory : filtered
+  return base.sort(() => Math.random() - 0.5).slice(0, n)
+}
+
+function buildGallery(product) {
+  if (!product) return []
+  const images = Array.isArray(product.images)
+    ? product.images.filter(Boolean)
+    : product.image
+      ? [product.image]
+      : []
+  const gallery = product.image ? [product.image, ...images] : images
+  return gallery.filter(Boolean).filter((image, index, array) => array.indexOf(image) === index)
 }
 
 export default function ProductQuickView({ product, onClose, allProducts = [] }) {
@@ -18,6 +31,9 @@ export default function ProductQuickView({ product, onClose, allProducts = [] })
   const [selectedImage, setSelectedImage] = useState(product?.image ?? "")
   const [quantity, setQuantity] = useState(1)
   const [isAdding, setIsAdding] = useState(false)
+  const [isWorking, setIsWorking] = useState(false)
+  const [relatedProducts, setRelatedProducts] = useState([])
+  const [isRelatedLoading, setIsRelatedLoading] = useState(false)
 
   const supportsBootstrap = typeof window !== "undefined" && Boolean(window.bootstrap)
 
@@ -32,6 +48,7 @@ export default function ProductQuickView({ product, onClose, allProducts = [] })
     setQuantity(1)
     setSelectedImage("")
     setIsAdding(false)
+    setIsWorking(false)
     clearFeedbackTimeout()
   }, [clearFeedbackTimeout])
 
@@ -80,9 +97,7 @@ export default function ProductQuickView({ product, onClose, allProducts = [] })
       return
     }
 
-    const images = [activeProduct.image, ...(activeProduct.thumbnails ?? [])]
-      .filter(Boolean)
-      .filter((image, index, array) => array.indexOf(image) === index)
+    const images = buildGallery(activeProduct)
 
     resetView()
     setSelectedImage(images[0] ?? "")
@@ -123,17 +138,38 @@ export default function ProductQuickView({ product, onClose, allProducts = [] })
     return undefined
   }, [manualActive])
 
-  const galleryImages = useMemo(() => {
-    if (!activeProduct) return []
-    return [activeProduct.image, ...(activeProduct.thumbnails ?? [])]
-      .filter(Boolean)
-      .filter((image, index, array) => array.indexOf(image) === index)
-  }, [activeProduct])
+  const galleryImages = useMemo(() => buildGallery(activeProduct), [activeProduct])
 
-  const relatedProducts = useMemo(() => {
-    if (!activeProduct) return []
-    return pickRelated(allProducts, activeProduct)
-  }, [allProducts, activeProduct])
+  useEffect(() => {
+    if (!activeProduct?.id) {
+      setRelatedProducts([])
+      return
+    }
+
+    let cancelled = false
+    setIsRelatedLoading(true)
+
+    ProductsApi.relatedOf(activeProduct.id, 4)
+      .then((related) => {
+        if (cancelled) return
+        const candidates = Array.isArray(related) && related.length ? related : pickRelated(allProducts, activeProduct)
+        setRelatedProducts(candidates)
+      })
+      .catch((error) => {
+        if (cancelled) return
+        console.error("Error obteniendo productos relacionados", error)
+        setRelatedProducts(pickRelated(allProducts, activeProduct))
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsRelatedLoading(false)
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [activeProduct, allProducts])
 
   const handleDecrease = () => {
     setQuantity((prev) => Math.max(1, prev - 1))
@@ -143,32 +179,40 @@ export default function ProductQuickView({ product, onClose, allProducts = [] })
     setQuantity((prev) => prev + 1)
   }
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!activeProduct) return
 
-    addItem(activeProduct, quantity)
-    setIsAdding(true)
+    setIsWorking(true)
+    try {
+      await addItem(activeProduct, quantity)
+      setIsAdding(true)
 
-    if (typeof window !== "undefined" && window.bootstrap) {
-      const offcanvasElement = document.getElementById("cartOffcanvas")
-      if (offcanvasElement) {
-        const offcanvasInstance =
-          window.bootstrap.Offcanvas.getInstance(offcanvasElement) ||
-          new window.bootstrap.Offcanvas(offcanvasElement)
-        offcanvasInstance?.show()
+      if (typeof window !== "undefined" && window.bootstrap) {
+        const offcanvasElement = document.getElementById("cartOffcanvas")
+        if (offcanvasElement) {
+          const offcanvasInstance =
+            window.bootstrap.Offcanvas.getInstance(offcanvasElement) ||
+            new window.bootstrap.Offcanvas(offcanvasElement)
+          offcanvasInstance?.show()
+        }
       }
+
+      clearFeedbackTimeout()
+
+      addFeedbackTimeoutRef.current = setTimeout(() => {
+        if (supportsBootstrap && modalRef.current && typeof window !== "undefined" && window.bootstrap) {
+          const modalInstance = window.bootstrap.Modal.getInstance(modalRef.current)
+          modalInstance?.hide()
+        } else {
+          closeAndNotify()
+        }
+      }, 900)
+    } catch (error) {
+      console.error("No se pudo añadir al carrito", error)
+      setIsAdding(false)
+    } finally {
+      setIsWorking(false)
     }
-
-    clearFeedbackTimeout()
-
-    addFeedbackTimeoutRef.current = setTimeout(() => {
-      if (supportsBootstrap && modalRef.current && typeof window !== "undefined" && window.bootstrap) {
-        const modalInstance = window.bootstrap.Modal.getInstance(modalRef.current)
-        modalInstance?.hide()
-      } else {
-        closeAndNotify()
-      }
-    }, 900)
   }
 
   const handleSelectRelated = (related) => {
@@ -285,12 +329,17 @@ export default function ProductQuickView({ product, onClose, allProducts = [] })
                             className={`add-to-cart-btn mt-3 ${isAdding ? "is-added" : ""}`}
                             type="button"
                             onClick={handleAddToCart}
-                            disabled={isAdding}
+                            disabled={isWorking}
                           >
                             {isAdding ? (
                               <>
                                 <i className="fas fa-check" aria-hidden="true"></i>
                                 <span className="ms-2">Añadido</span>
+                              </>
+                            ) : isWorking ? (
+                              <>
+                                <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                <span className="ms-2">Añadiendo...</span>
                               </>
                             ) : (
                               <>
@@ -308,6 +357,9 @@ export default function ProductQuickView({ product, onClose, allProducts = [] })
                 {relatedProducts.length ? (
                   <div className="related-products-modal">
                     <h3>Productos relacionados</h3>
+                    {isRelatedLoading ? (
+                      <div className="text-muted mb-3">Buscando recomendaciones...</div>
+                    ) : null}
                     <div className="row g-3">
                       {relatedProducts.map((related) => (
                         <div key={related.id} className="col-12 col-sm-6 col-lg-3">
@@ -317,7 +369,11 @@ export default function ProductQuickView({ product, onClose, allProducts = [] })
                             onClick={() => handleSelectRelated(related)}
                           >
                             <div className="related-card-image">
-                              <img src={related.image} alt={related.name} className="img-fluid" />
+                              <img
+                                src={related.image ?? (Array.isArray(related.images) ? related.images[0] : "")}
+                                alt={related.name}
+                                className="img-fluid"
+                              />
                             </div>
                             <div className="related-card-body">
                               <h6 className="mb-1">{related.name}</h6>

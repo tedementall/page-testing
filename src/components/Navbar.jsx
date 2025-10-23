@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useCallback, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
 
 const NAV_LINKS = [
   { label: "Inicio", href: "#home" },
@@ -19,9 +20,18 @@ const SOCIAL_LINKS = [
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const location = useLocation();
   const { totalItems } = useCart();
+  const { isAuthenticated, user, logout, isLoading: authLoading } = useAuth();
   const toggleMenu = () => setMenuOpen((p) => !p);
   const closeMenu = () => setMenuOpen(false);
+
+  const handleLogout = useCallback(() => {
+    setMenuOpen(false);
+    logout();
+  }, [logout]);
+
+  const displayName = user?.name || user?.email || user?.username || "Tu cuenta";
 
   return (
     <header className="site-header">
@@ -87,9 +97,28 @@ export default function Navbar() {
               ) : null}
             </button>
 
-            <Link to="/login" className="btn__text" onClick={closeMenu}>
-              Acceder
-            </Link>
+            {isAuthenticated ? (
+              <div className="d-flex align-items-center gap-2">
+                <span className="text-nowrap small fw-semibold d-none d-lg-inline">{displayName}</span>
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary"
+                  onClick={handleLogout}
+                  disabled={authLoading}
+                >
+                  Cerrar sesión
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                className="btn__text"
+                state={{ from: location.pathname }}
+                onClick={closeMenu}
+              >
+                Acceder
+              </Link>
+            )}
           </div>
         </div>
       </div>

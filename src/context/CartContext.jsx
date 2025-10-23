@@ -1,166 +1,355 @@
-import { createContext, useContext, useEffect, useMemo, useReducer, useRef } from "react"
-import { parseCurrency } from "../utils/currency"
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
+import { CartApi } from "../api/coreApi"
+import { onUnauthorized } from "../api/http"
+import { useAuth } from "./AuthContext"
 
 const CartContext = createContext(null)
-const STORAGE_KEY = "the-hub-cart"
 
-const initialState = {
-  items: []
+function sanitizeQuantity(quantity) {
+  const parsed = Number.parseInt(quantity, 10)
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return 0
+  }
+  return parsed
 }
 
-function normalizeItem(product, quantity) {
-  if (!product || typeof product.id === "undefined") return null
+function toNumber(value) {
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed)) return 0
+  return parsed
+}
 
-  const price = parseCurrency(product.price ?? product.priceValue ?? product.priceNumber)
+function normalizeCartItem(item) {
+  if (!item) {
+    return null
+  }
+
+  const product = item.product ?? {}
+  const images = Array.isArray(product.images)
+    ? product.images.filter(Boolean)
+    : product.image
+      ? [product.image]
+      : []
+  const image = product.image ?? images[0] ?? ""
+  const quantity = sanitizeQuantity(item.quantity ?? 0)
+  const price = toNumber(product.price ?? product.price_value ?? product.priceNumber)
 
   return {
-    id: product.id,
-    name: product.name,
-    price,
-    image: product.image,
-    category: product.category,
+    id: item.id ?? `${item.product_id ?? product.id ?? "item"}`,
+    cartId: item.cart_id ?? null,
+    productId: item.product_id ?? product.id ?? null,
     quantity,
-    description: product.description ?? ""
+    product: {
+      id: product.id ?? item.product_id ?? null,
+      name: product.name ?? "",
+      description: product.description ?? "",
+      category: product.category ?? "",
+      price,
+      stock: product.stock ?? null,
+      images,
+      image
+    },
+    subtotal: price * quantity
   }
 }
 
-function cartReducer(state, action) {
-  switch (action.type) {
-    case "ADD_ITEM": {
-      const { product, quantity = 1 } = action.payload ?? {}
-      const safeQuantity = Math.max(
-        1,
-        Number.isFinite(Number(quantity)) ? Number.parseInt(quantity, 10) || 1 : 1
-      )
-      const normalized = normalizeItem(product, safeQuantity)
-      if (!normalized) return state
+function normalizeCart(cart) {
+  if (!cart) {
+    return {
+      cartId: null,
+      userId: null,
+      items: []
+    }
+  }
 
-      const existing = state.items.find((item) => item.id === normalized.id)
-      if (existing) {
-        return {
-          ...state,
-          items: state.items.map((item) =>
-            item.id === normalized.id
-              ? { ...item, quantity: item.quantity + safeQuantity }
-              : item
-          )
-        }
-      }
+  const items = Array.isArray(cart.items)
+    ? cart.items
+        .map((item) => normalizeCartItem(item))
+        .filter((item) => item && item.productId)
+    : []
 
-      return {
-        ...state,
-        items: [...state.items, normalized]
-      }
-    }
-    case "REMOVE_ITEM": {
-      const { id } = action.payload ?? {}
-      if (!id) return state
-      return {
-        ...state,
-        items: state.items.filter((item) => item.id !== id)
-      }
-    }
-    case "INC_QTY": {
-      const { id } = action.payload ?? {}
-      if (!id) return state
-      return {
-        ...state,
-        items: state.items.map((item) =>
-          item.id === id ? { ...item, quantity: item.quantity + 1 } : item
-        )
-      }
-    }
-    case "DEC_QTY": {
-      const { id } = action.payload ?? {}
-      if (!id) return state
-      return {
-        ...state,
-        items: state.items
-          .map((item) =>
-            item.id === id
-              ? { ...item, quantity: Math.max(0, item.quantity - 1) }
-              : item
-          )
-          .filter((item) => item.quantity > 0)
-      }
-    }
-    case "CLEAR":
-      return { ...state, items: [] }
-    case "RESTORE_FROM_STORAGE": {
-      const storedItems = Array.isArray(action.payload?.items)
-        ? action.payload.items
-        : []
-      const items = storedItems
-        .map((item) => ({
-          ...item,
-          price: parseCurrency(item.price),
-          quantity:
-            typeof item.quantity === "number" && item.quantity > 0
-              ? item.quantity
-              : 1
-        }))
-        .filter((item) => item.id)
-
-      return { ...state, items }
-    }
-    default:
-      return state
+  return {
+    cartId: cart.id ?? null,
+    userId: cart.user_id ?? null,
+    items
   }
 }
 
 export function CartProvider({ children }) {
-  const [state, dispatch] = useReducer(cartReducer, initialState)
-  const hasHydrated = useRef(false)
+  const { status: authStatus } = useAuth()
+  const [cartId, setCartId] = useState(() => CartApi.getStoredCartId())
+  const [userId, setUserId] = useState(null)
+  const [items, setItems] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [isMutating, setIsMutating] = useState(false)
+  const [error, setError] = useState(null)
+  const previousAuthStatus = useRef(authStatus)
 
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    try {
-      const stored = window.localStorage.getItem(STORAGE_KEY)
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        if (parsed && typeof parsed === "object") {
-          dispatch({ type: "RESTORE_FROM_STORAGE", payload: parsed })
-        }
-      }
-    } catch (error) {
-      console.error("Error restoring cart from storage", error)
+  const applyCartState = useCallback((cartData) => {
+    const normalized = normalizeCart(cartData)
+    if (normalized.cartId) {
+      CartApi.setStoredCartId(normalized.cartId)
     }
+    setCartId(normalized.cartId)
+    setUserId(normalized.userId)
+    setItems(normalized.items)
+    setError(null)
+  }, [])
+
+  const handleCartError = useCallback((err) => {
+    if (err?.response?.status === 404) {
+      CartApi.clearStoredCartId()
+      setCartId(null)
+      setUserId(null)
+      setItems([])
+    }
+    setError(err)
   }, [])
 
   useEffect(() => {
-    if (!hasHydrated.current) {
-      hasHydrated.current = true
+    const unsubscribe = onUnauthorized(() => {
+      CartApi.clearStoredCartId()
+      setCartId(null)
+      setUserId(null)
+      setItems([])
+    })
+    return unsubscribe
+  }, [])
+
+  const refreshCart = useCallback(
+    async (targetCartId) => {
+      const effectiveCartId = targetCartId ?? cartId ?? CartApi.getStoredCartId()
+      if (!effectiveCartId) return null
+      setIsLoading(true)
+      try {
+        const cart = await CartApi.getCart(effectiveCartId)
+        if (cart) {
+          applyCartState(cart)
+        }
+        return cart
+      } catch (err) {
+        handleCartError(err)
+        throw err
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [applyCartState, cartId, handleCartError]
+  )
+
+  const ensureCartId = useCallback(async () => {
+    if (cartId) {
+      return cartId
+    }
+    setIsLoading(true)
+    try {
+      const cart = await CartApi.ensureCart()
+      if (cart) {
+        applyCartState(cart)
+        return cart.id ?? null
+      }
+      return null
+    } catch (err) {
+      handleCartError(err)
+      throw err
+    } finally {
+      setIsLoading(false)
+    }
+  }, [applyCartState, cartId, handleCartError])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const initialize = async () => {
+      try {
+        if (cartId) {
+          await refreshCart(cartId)
+          return
+        }
+
+        const ensuredId = await ensureCartId()
+        if (cancelled || !ensuredId) return
+        await refreshCart(ensuredId)
+      } catch (err) {
+        if (!cancelled) {
+          console.error("Error inicializando el carrito", err)
+        }
+      }
+    }
+
+    initialize()
+
+    return () => {
+      cancelled = true
+    }
+  }, [cartId, ensureCartId, refreshCart])
+
+  useEffect(() => {
+    if (authStatus !== "authenticated" && authStatus !== "unauthenticated") {
+      previousAuthStatus.current = authStatus
       return
     }
 
-    if (typeof window === "undefined") return
+    const previous = previousAuthStatus.current
+    previousAuthStatus.current = authStatus
+
+    const shouldReset =
+      authStatus === "authenticated" ||
+      (authStatus === "unauthenticated" && previous === "authenticated")
+
+    if (!shouldReset) {
+      return
+    }
+
+    CartApi.clearStoredCartId()
+    setCartId(null)
+    setUserId(null)
+    setItems([])
+
+    ensureCartId()
+      .then((id) => {
+        if (!id) return null
+        return refreshCart(id)
+      })
+      .catch((err) => {
+        console.error("Error actualizando carrito al cambiar autenticación", err)
+      })
+  }, [authStatus, ensureCartId, refreshCart])
+
+  const addItem = useCallback(
+    async (productOrId, quantity = 1) => {
+      const productId =
+        typeof productOrId === "object" && productOrId !== null
+          ? productOrId.id ?? productOrId.product_id ?? productOrId.productId
+          : productOrId
+      const safeQuantity = sanitizeQuantity(quantity)
+      if (!productId || safeQuantity <= 0) {
+        throw new Error("Producto o cantidad inválida")
+      }
+      setIsMutating(true)
+      try {
+        const ensuredId = await ensureCartId()
+        if (!ensuredId) {
+          throw new Error("No fue posible obtener un carrito activo")
+        }
+        await CartApi.addItem({ cart_id: ensuredId, product_id: productId, quantity: safeQuantity })
+        await refreshCart(ensuredId)
+      } catch (err) {
+        handleCartError(err)
+        throw err
+      } finally {
+        setIsMutating(false)
+      }
+    },
+    [ensureCartId, handleCartError, refreshCart]
+  )
+
+  const updateQuantity = useCallback(
+    async (cartItemId, quantity) => {
+      const safeQuantity = sanitizeQuantity(quantity)
+      if (!cartItemId || safeQuantity <= 0) {
+        throw new Error("Cantidad inválida")
+      }
+      setIsMutating(true)
+      try {
+        await CartApi.updateQty({ cart_item_id: cartItemId, quantity: safeQuantity })
+        await refreshCart()
+      } catch (err) {
+        handleCartError(err)
+        throw err
+      } finally {
+        setIsMutating(false)
+      }
+    },
+    [handleCartError, refreshCart]
+  )
+
+  const removeItem = useCallback(
+    async (cartItemId) => {
+      if (!cartItemId) return
+      setIsMutating(true)
+      try {
+        await CartApi.removeItem(cartItemId)
+        await refreshCart()
+      } catch (err) {
+        handleCartError(err)
+        throw err
+      } finally {
+        setIsMutating(false)
+      }
+    },
+    [handleCartError, refreshCart]
+  )
+
+  const incrementItem = useCallback(
+    async (cartItemId) => {
+      const target = items.find((item) => item.id === cartItemId)
+      if (!target) return
+      await updateQuantity(cartItemId, target.quantity + 1)
+    },
+    [items, updateQuantity]
+  )
+
+  const decrementItem = useCallback(
+    async (cartItemId) => {
+      const target = items.find((item) => item.id === cartItemId)
+      if (!target) return
+      const nextQuantity = target.quantity - 1
+      if (nextQuantity <= 0) {
+        await removeItem(cartItemId)
+      } else {
+        await updateQuantity(cartItemId, nextQuantity)
+      }
+    },
+    [items, removeItem, updateQuantity]
+  )
+
+  const clearCart = useCallback(async () => {
+    const ensuredId = cartId ?? (await ensureCartId())
+    if (!ensuredId) return
+    setIsMutating(true)
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-    } catch (error) {
-      console.error("Error saving cart to storage", error)
+      await CartApi.clearCart(ensuredId)
+      await refreshCart(ensuredId)
+    } catch (err) {
+      handleCartError(err)
+      throw err
+    } finally {
+      setIsMutating(false)
     }
-  }, [state])
+  }, [cartId, ensureCartId, handleCartError, refreshCart])
 
-  const value = useMemo(() => {
-    const totalItems = state.items.reduce((sum, item) => sum + item.quantity, 0)
-    const totalPrice = state.items.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0
+  const totals = useMemo(() => {
+    return items.reduce(
+      (acc, item) => {
+        acc.totalItems += item.quantity
+        acc.totalPrice += item.subtotal
+        return acc
+      },
+      { totalItems: 0, totalPrice: 0 }
     )
+  }, [items])
 
-    return {
-      items: state.items,
-      totalItems,
-      totalPrice,
-      dispatch,
-      addItem: (product, quantity = 1) =>
-        dispatch({ type: "ADD_ITEM", payload: { product, quantity } }),
-      removeItem: (id) => dispatch({ type: "REMOVE_ITEM", payload: { id } }),
-      incrementItem: (id) => dispatch({ type: "INC_QTY", payload: { id } }),
-      decrementItem: (id) => dispatch({ type: "DEC_QTY", payload: { id } }),
-      clearCart: () => dispatch({ type: "CLEAR" })
-    }
-  }, [state])
+  const value = useMemo(
+    () => ({
+      cartId,
+      userId,
+      items,
+      totalItems: totals.totalItems,
+      totalPrice: totals.totalPrice,
+      isLoading,
+      isMutating,
+      error,
+      refreshCart,
+      addItem,
+      updateQuantity,
+      incrementItem,
+      decrementItem,
+      removeItem,
+      clearCart
+    }),
+    [addItem, cartId, clearCart, decrementItem, error, incrementItem, isLoading, isMutating, items, refreshCart, removeItem, totals.totalItems, totals.totalPrice, updateQuantity, userId]
+  )
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }
