@@ -1,4 +1,4 @@
-import axios from "../lib/miniAxios" // 👈 usamos tu cliente personalizado
+import axios from "../lib/miniAxios"
 
 const TOKEN_KEY = import.meta.env.VITE_TOKEN_KEY ?? "THEHUB_TOKEN"
 
@@ -47,14 +47,13 @@ export function onUnauthorized(callback) {
   }
 }
 
-// URLs base desde .env (Vite)
-const authBaseURL = import.meta.env.VITE_XANO_AUTH_BASE ?? "https://x8ki-let1-twmt.n7.xano.io"
-const coreBaseURL = import.meta.env.VITE_XANO_CORE_BASE ?? "https://x8ki-let1-twmt.n7.xano.io"
+// 👇 CAMBIA ESTAS LÍNEAS - Usa las variables correctas del .env
+const authBaseURL = import.meta.env.VITE_XANO_AUTH_BASE ?? "/xano-auth"
+const coreBaseURL = import.meta.env.VITE_XANO_CORE_BASE ?? "/xano-core"
 
-// --- Instancias basadas en miniAxios ---
 const httpAuth = axios.create({
   baseURL: authBaseURL,
-  withCredentials: false, // 🚫 no enviamos cookies (solo Bearer)
+  withCredentials: false,
 })
 
 const httpCore = axios.create({
@@ -62,19 +61,24 @@ const httpCore = axios.create({
   withCredentials: false,
 })
 
-// --- Interceptores (adaptados al sistema miniAxios) ---
 function applyInterceptors(instance) {
   // Agrega token automáticamente
   instance.interceptors.request.use((config) => {
     const token = getStoredToken()
+    
+    config.headers = config.headers ?? {}
+    
     if (token) {
-      config.headers = config.headers ?? {}
       config.headers.Authorization = `Bearer ${token}`
     }
+    
+    if (config.data && !config.headers['Content-Type']) {
+      config.headers['Content-Type'] = 'application/json'
+    }
+    
     return config
   })
 
-  // Manejo de errores (401 → logout)
   instance.interceptors.response.use(
     (response) => response,
     (error) => {

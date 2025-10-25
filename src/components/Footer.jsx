@@ -1,4 +1,4 @@
-import React from 'react'; // ¡Asegúrate de tener React importado!
+import React from 'react';
 
 const FOOTER_LINKS = [
   {
@@ -67,20 +67,10 @@ export default function Footer() {
             </div>
           ))}
 
-          {/* --- INICIO DEL BLOQUE REEMPLAZADO --- */}
-          {/* Reemplazamos el formulario de "Únete a la comunidad" 
-            por la información de contacto que querías.
-          */}
           <div className="col-12 col-lg-4 footer-column">
             <h4>Contáctenos</h4>
-            {/* Asumiendo que 'styles.css' ya tiene la clase '.contact-list' 
-              para dar estilo a los iconos, como vimos en un paso anterior.
-            */}
             <ul className="contact-list">
               <li>
-                {/* Usamos los iconos de Font Awesome que ya tienes 
-                  instalados (fas = solid) 
-                */}
                 <i className="fas fa-phone"></i>
                 <a href="tel:+569XXXXXXXX">+56 9 XXXX XXXX</a>
               </li>
@@ -90,18 +80,14 @@ export default function Footer() {
               </li>
               <li>
                 <i className="fas fa-map-marker-alt"></i>
-                {/* Hacemos que la dirección sea un enlace a Google Maps 
-                  para que mantenga el estilo del resto de los enlaces.
-                */}
                 <a href="https://www.google.com/maps/place/Maip%C3%BA" target="_blank" rel="noreferrer">
                   Maipú, Santiago, Chile
                 </a>
               </li>
             </ul>
           </div>
-          {/* --- FIN DEL BLOQUE REEMPLAZADO --- */}
-
         </div>
+
         <div className="footer-bottom mt-4 d-flex flex-column flex-md-row justify-content-between align-items-center">
           <p className="mb-0">© {new Date().getFullYear()} The Hub. Todos los derechos reservados.</p>
           <div>

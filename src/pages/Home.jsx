@@ -1,39 +1,25 @@
-import Hero from "../components/Hero"
-import Trust from "../components/Trust"
-import About from "../components/About"
-import Products from "../components/Products"
-import Team from "../components/Team"
-import { motion } from "framer-motion"
+import Hero from "../components/Hero";
+import Trust from "../components/Trust";
+import About from "../components/About";
+import Products from "../components/Products";
+import Team from "../components/Team";
+import { motion } from "framer-motion";
 
-// --- INICIO DEL CAMBIO ---
-// Cambiamos las variantes para que solo hagan "fade" y no "slide"
 const pageVariants = {
-  // Estado inicial (cuando entra)
-  initial: {
-    opacity: 0 // Inicia completamente invisible
-  },
-  // Estado final (cuando está "en" la pantalla)
-  in: {
-    opacity: 1 // Termina 100% visible
-  },
-  // Estado de salida (cuando te vas a otra página)
-  out: {
-    opacity: 0 // Se va volviendo invisible
-  }
-}
-// --- FIN DEL CAMBIO ---
+  initial: { opacity: 0 },
+  in: { opacity: 1 },
+  out: { opacity: 0 },
+};
 
-// La transición sigue siendo la misma
 const pageTransition = {
   type: "tween",
   ease: "easeInOut",
-  duration: 0.4 // Duración de la animación en segundos
-}
-
+  duration: 0.4,
+};
 
 export default function Home() {
   return (
-    <motion.main 
+    <motion.main
       className="main-content-padding"
       initial="initial"
       animate="in"
@@ -47,5 +33,5 @@ export default function Home() {
       <Products />
       <Team />
     </motion.main>
-  )
+  );
 }
