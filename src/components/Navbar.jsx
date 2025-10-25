@@ -1,5 +1,4 @@
 import { useCallback, useState } from "react";
-// Importamos 'Link' (que ya tenías) y 'HashLink'
 import { Link, useLocation } from "react-router-dom";
 import { HashLink } from "react-router-hash-link";
 import { useCart } from "../context/CartContext";
@@ -24,15 +23,15 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
   const { totalItems } = useCart();
-  // Obtenemos el 'user' (que contiene user_type)
-  const { isAuthenticated, user, logout, isLoading: authLoading } = useAuth(); 
+  const { isAuthenticated, user, logout, isLoading: authLoading } = useAuth();
+
   const toggleMenu = () => setMenuOpen((p) => !p);
   const closeMenu = () => setMenuOpen(false);
 
   const smoothScroll = (el) => {
     el.scrollIntoView({
       behavior: "smooth",
-      block: "start"
+      block: "start",
     });
   };
 
@@ -47,7 +46,6 @@ export default function Navbar() {
     <header className="site-header">
       <div className="container">
         <div className="nav-grid">
-          {/* Col 1: Burger + Logo */}
           <div className="d-flex align-items-center gap-3">
             <button
               className="btn btn-outline-secondary d-lg-none"
@@ -63,17 +61,12 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Col 2: Menú central */}
           <div className={`menu-center ${menuOpen ? "d-block" : "d-none d-lg-block"}`}>
             <nav aria-label="Navegación principal">
               <ul className="nav mb-0 justify-content-center gap-4">
                 {NAV_LINKS.map((link) => (
                   <li key={link.label} className="nav-item" onClick={closeMenu}>
-                    <HashLink 
-                      to={link.href} 
-                      className="nav-link" 
-                      scroll={smoothScroll}
-                    >
+                    <HashLink to={link.href} className="nav-link" scroll={smoothScroll}>
                       {link.label}
                     </HashLink>
                   </li>
@@ -82,14 +75,8 @@ export default function Navbar() {
             </nav>
           </div>
 
-          {/* Col 3: Acciones derecha */}
           <div className="d-flex align-items-center justify-content-end gap-3 actions-right">
-            
-            <HashLink 
-              to="/#productos" 
-              className="btn__search d-none d-sm-inline-block" 
-              scroll={smoothScroll}
-            >
+            <HashLink to="/#productos" className="btn__search d-none d-sm-inline-block" scroll={smoothScroll}>
               Explorar
             </HashLink>
 
@@ -118,26 +105,16 @@ export default function Navbar() {
               ) : null}
             </button>
 
-            {/* --- INICIO DEL CAMBIO --- */}
             {isAuthenticated ? (
-              // Si el usuario está logueado...
               <div className="d-flex align-items-center gap-2">
-                
-                {user?.user_type === 'admin' ? (
-                  // Si es ADMIN: muestra el botón "Dashboard"
-                  <Link 
-                    to="/admin" // Esto nos llevará a /admin/dashboard
-                    className="btn btn-outline-primary" // Le damos un estilo diferente
-                    onClick={closeMenu}
-                  >
+                {user?.user_type === "admin" ? (
+                  <Link to="/admin" className="btn btn-outline-primary" onClick={closeMenu}>
                     Dashboard
                   </Link>
                 ) : (
-                  // Si es USUARIO NORMAL: muestra su nombre
                   <span className="text-nowrap small fw-semibold d-none d-lg-inline">{displayName}</span>
                 )}
 
-                {/* El botón de "Cerrar sesión" aparece en ambos casos */}
                 <button
                   type="button"
                   className="btn btn-outline-secondary"
@@ -148,18 +125,10 @@ export default function Navbar() {
                 </button>
               </div>
             ) : (
-              // Si no está logueado, muestra "Acceder"
-              <Link
-                to="/login"
-                className="btn__text"
-                state={{ from: location.pathname }}
-                onClick={closeMenu}
-              >
+              <Link to="/login" className="btn__text" state={{ from: location.pathname }} onClick={closeMenu}>
                 Acceder
               </Link>
             )}
-            {/* --- FIN DEL CAMBIO --- */}
-            
           </div>
         </div>
       </div>

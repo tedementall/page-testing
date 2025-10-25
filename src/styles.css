@@ -1,140 +1,126 @@
-/* === TheHub/admin/admin.css === */
-/*
- * Hoja de Estilos para el Panel de Administrador de The Hub
- */
-
-/* Estilos para el body de las páginas de admin */
 body.admin-body {
-    font-family: "Google Sans", "Poppins", sans-serif; /* Hereda la fuente de tu tienda */
-    background-image: url('/TheHub/images/bg/bg.png'); /* Ruta para salir de /admin y entrar a /images */
-    background-size: cover;
-    background-attachment: fixed;
-    background-position: center;
+  font-family: "Google Sans", "Poppins", sans-serif;
+  background-image: url('/TheHub/images/bg/bg.png');
+  background-size: cover;
+  background-attachment: fixed;
+  background-position: center;
 }
 
-/* Contenedor principal para el layout (sidebar + contenido) */
 .admin-wrapper {
-    display: flex;
-    min-height: 100vh;
+  display: flex;
+  min-height: 100vh;
 }
 
-/* Menú Lateral (Sidebar) con efecto de vidrio esmerilado */
 .admin-sidebar {
-    width: 260px;
-    flex-shrink: 0; /* Evita que el sidebar se encoja */
-    padding: 2rem 1.5rem;
-    /* --- Efecto "Glassmorphism" --- */
-    background-color: rgba(30, 30, 30, 0.4); /* Fondo oscuro semi-transparente */
-    backdrop-filter: blur(20px); /* El efecto de desenfoque (blur) */
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 0 20px 20px 0; /* Esquinas redondeadas solo en el lado derecho */
-    box-shadow: var(--shadow-card); /* Reutilizamos la sombra de tu style.css */
+  width: 260px;
+  flex-shrink: 0;
+  padding: 2rem 1.5rem;
+  background-color: rgba(30, 30, 30, 0.4);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0 20px 20px 0;
+  box-shadow: var(--shadow-card);
 }
 
 .admin-sidebar .sidebar-header {
-    margin-bottom: 2.5rem;
-    text-align: center;
+  margin-bottom: 2.5rem;
+  text-align: center;
 }
 
 .admin-sidebar .sidebar-header a {
-    text-decoration: none;
+  text-decoration: none;
 }
 
 .admin-sidebar .sidebar-header img {
-    max-width: 150px;
-    margin-bottom: 0.5rem;
+  max-width: 150px;
+  margin-bottom: 0.5rem;
 }
 
-/* Estilo para los enlaces de navegación del menú */
 .admin-sidebar .nav-link {
-    color: #f0f0f0; /* Texto claro para que contraste con el fondo */
-    font-weight: 500;
-    padding: 0.8rem 1rem;
-    margin-bottom: 0.5rem;
-    border-radius: 10px;
-    transition: var(--transition-fast); /* Reutilizamos la animación de tu style.css */
+  color: #f0f0f0;
+  font-weight: 500;
+  padding: 0.8rem 1rem;
+  margin-bottom: 0.5rem;
+  border-radius: 10px;
+  transition: var(--transition-fast);
 }
 
 .admin-sidebar .nav-link:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #fff;
-    transform: translateX(5px);
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  transform: translateX(5px);
 }
 
 .admin-sidebar .nav-link.active {
-    background-color: var(--main_color-primary); /* Reutilizamos el color principal de tu tienda */
-    color: #fff;
-    font-weight: bold;
+  background-color: var(--main_color-primary);
+  color: #fff;
+  font-weight: bold;
 }
 
-/* Botón de Cerrar Sesión al final del menú */
 .admin-sidebar .logout-section {
-    margin-top: auto; /* Empuja esta sección al fondo */
+  margin-top: auto;
 }
 
-/* Contenedor para el contenido principal a la derecha */
 .admin-content {
-    flex-grow: 1; /* Hace que ocupe todo el espacio restante */
-    padding: 2.5rem;
-    color: #fff; /* Texto blanco para el contenido */
+  flex-grow: 1;
+  padding: 2.5rem;
+  color: #fff;
 }
 
 .admin-content h1 {
-    font-weight: 700;
-    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5); /* Sombra para legibilidad */
+  font-weight: 700;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
 }
 
-/* --- ESTILO PARA PANELES DE CONTENIDO GENERAL (Glassmorphism) --- */
 .content-panel {
-    background-color: rgba(30, 30, 30, 0.4);
-    backdrop-filter: blur(20px);
-    border-radius: 20px;
-    padding: 2rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: var(--shadow-card);
+  background-color: rgba(30, 30, 30, 0.4);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-card);
 }
 
-.content-panel h1, .content-panel p, .content-panel h4 {
-    text-shadow: none; /* Quitamos la sombra de texto general para que se vea más nítido dentro del panel */
+.content-panel h1,
+.content-panel p,
+.content-panel h4 {
+  text-shadow: none;
 }
 
-/* --- ESTILOS PARA LA TABLA DE PRODUCTOS --- */
 .table-container {
-    background-color: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
-    border-radius: 20px; /* Esquinas redondeadas */
-    padding: 1rem;
-    box-shadow: var(--shadow-card);
+  background-color: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 1rem;
+  box-shadow: var(--shadow-card);
 }
 
 .table {
-    background-color: transparent; /* HACE LA TABLA TRANSPARENTE */
-    color: #fff; /* Asegura que el texto dentro sea blanco y legible */
+  background-color: transparent;
+  color: #fff;
 }
 
 .table thead th {
-    background-color: transparent !important; /* Hacemos el fondo del header transparente */
-    color: #fff;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-    padding: 1rem;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  background-color: transparent !important;
+  color: #fff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 1rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .table tbody tr {
-    transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease;
 }
 
 .table tbody tr:hover {
-    background-color: rgba(255, 255, 255, 0.1); /* Hacemos el hover visible */
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .table tbody td {
-    padding: 1rem;
-    vertical-align: middle;
-    border-top: 1px solid rgba(255, 255, 255, 0.1); /* Línea sutil para separar filas */
+  padding: 1rem;
+  vertical-align: middle;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
-
-/* === TheHub/css/style.css === */
 
 @font-face {
   font-family: "Google Sans";
@@ -144,32 +130,26 @@ body.admin-body {
 }
 
 :root {
-  /* Colores */
   --color_text-primary: #9a00bf;
   --color_text-secundary: #101e2c;
   --color_text-tertiary: #485663;
   --main_color-primary: #9a00bf;
   --main_color-secundary: #f4d4fb;
   --background-color: #fafbfe;
-
-  /* Footer */
   --footer-bg: #ffffff;
   --footer-text: #555;
   --footer-border: #e9e9e9;
   --footer-highlight: #8A2BE2;
-  /* Tamaños de texto */
   --lowtext_font_size: 16px;
   --text_size_tittle: 40px;
   --text_tittle_card: 24px;
   --text_tittle_cardv2: 20px;
   --text_paragraph: 16px;
-  /* Sombras */
   --box_shadow-primary: 0px 6px 50px -20px rgba(0, 0, 0, 0.2);
   --shadow-header: 0 2px 8px rgba(0, 0, 0, 0.1);
   --shadow-card: 0 6px 18px rgba(0, 0, 0, 0.1);
   --shadow-card-hover: 0 10px 25px rgba(0, 0, 0, 0.25);
   --shadow-highlight: 0px 6px 50px -20px rgba(0, 0, 0, 0.2);
-  /* Animaciones */
   --transition-fast: all 0.2s ease;
   --transition-medium: all 0.3s ease;
   --transition-slow: all 0.5s ease;
@@ -186,60 +166,50 @@ body {
   font-family: "Google Sans", "Poppins", sans-serif;
   color: #333;
   background-color: #fff;
-  overflow-x: hidden; /* Prevenir scroll horizontal */
+  overflow-x: hidden;
 }
 
-/* === HEADER / NAVBAR (glass + grid de 3 columnas) === */
 .site-header {
-  position: sticky; /* cambia a fixed si la quieres siempre fija */
+  position: sticky;
   top: 0;
   z-index: 1000;
-  /* Glassmorphism */
   background: rgba(255, 255, 255, 0.65);
   -webkit-backdrop-filter: saturate(140%) blur(14px);
   backdrop-filter: saturate(140%) blur(14px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.35);
   box-shadow: 0 8px 30px rgba(17, 24, 39, 0.08);
-
-  isolation: isolate; /* evita artefactos con pseudo-elementos detrás */
+  isolation: isolate;
 }
 
-/* Fallback si el navegador no soporta backdrop-filter */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .site-header { background: rgba(255, 255, 255, 0.92); }
 }
 
-/* Layout: [ logo | menú centro | acciones derecha ] */
 .nav-grid {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 16px;
   min-height: 72px;
-  white-space: nowrap;              /* evita saltos a 2 filas en desktop */
+  white-space: nowrap;
 }
 
-/* Menú central en una sola fila */
 .menu-center { overflow: hidden; }
 .menu-center .nav { flex-wrap: nowrap; }
 
-/* Acciones alineadas a la derecha sin romper */
 .actions-right { flex-wrap: nowrap; }
 
-/* Logo consistente */
 .logo img {
   display: block;
-  height: 38px;                     /* ajusta a tu gusto */
+  height: 38px;
   width: auto;
 }
 
-/* Padding vertical del contenedor dentro del header */
 .site-header .container {
   padding-top: .6rem;
   padding-bottom: .6rem;
 }
 
-/* Estilos de enlaces del menú (look limpio) */
 .menu-center .nav-link,
 .menu nav ul li a {
   font-weight: 500;
@@ -249,36 +219,30 @@ body {
   transition: var(--transition-medium);
   text-decoration: none;
 }
+
 .menu-center .nav-link:hover,
 .menu nav ul li a:hover {
-  color: #6d28d9; /* morado de marca */
+  color: #6d28d9;
   text-decoration: underline;
 }
 
-/* Espaciado horizontal entre items del menú */
 .menu-center .nav > li,
 .menu nav ul li {
   margin: 0 16px;
 }
 
-/* Evitar cortes en botones/acciones */
 .header__actions,
 .actions-right > * { white-space: nowrap; }
 
-/* Compensación del contenido por el header sticky/fixed */
 .main-content-padding {
-  padding-top: 0; /* súbelo a ~100–120px si usas position: fixed */
+  padding-top: 0;
 }
 
-/* --- Responsive --- */
 @media (max-width: 992px) {
-  /* Permite que el menú pueda pasar a varias filas en móviles si es necesario */
   .menu-center .nav { flex-wrap: wrap; justify-content: center; }
   .nav-grid { gap: 12px; }
 }
 
-
-/* Cover Section */
 .container__cover {
   background: var(--main_color-secundary);
   padding: 100px 0;
@@ -322,7 +286,6 @@ body {
   height: auto;
 }
 
-/* Trust Section */
 .container__trust {
   padding: 100px 0;
 }
@@ -364,7 +327,6 @@ body {
   color: var(--color_text-tertiary);
 }
 
-/* About Section */
 .container__about {
   padding: 100px 0;
   background: var(--background-color);
@@ -387,7 +349,6 @@ body {
   box-shadow: var(--shadow-card);
 }
 
-/* Products Section */
 .container__product {
   padding: 100px 0;
 }
@@ -445,7 +406,6 @@ body {
   color: var(--color_text-primary);
 }
 
-/* Team Section */
 .container__team {
   padding: 100px 0;
 }
@@ -501,7 +461,6 @@ body {
   font-size: 0.9rem;
 }
 
-/* Footer */
 .site-footer {
   background-color: var(--footer-bg);
   color: var(--footer-text);
@@ -514,7 +473,7 @@ body {
   margin-bottom: 20px;
 }
 
-.site-footer h4 { /* Estilo unificado para H4 en footer */
+.site-footer h4 {
   font-size: 18px;
   color: var(--color_text-secundary);
   margin-bottom: 20px;
@@ -597,64 +556,29 @@ body {
   color: var(--footer-highlight);
 }
 
-/* Responsive */
 @media (max-width: 992px) {
-  .text__cover h1 {
-    font-size: 2.5rem;
-  }
-  
-  .menu nav {
-    margin: 15px 0;
-  }
-  
-  .btn__search {
-    margin: 10px 0;
-  }
+  .text__cover h1 { font-size: 2.5rem; }
+  .menu nav { margin: 15px 0; }
+  .btn__search { margin: 10px 0; }
 }
 
 @media (max-width: 768px) {
-  .text__cover {
-    text-align: center;
-    margin-bottom: 40px;
-  }
-  
-  .text__about, .text__product, .text__team {
-    text-align: center;
-    margin-bottom: 40px;
-  }
-  
-  .footer-column {
-    margin-bottom: 40px;
-  }
-  
-  .footer-bottom {
-    text-align: center;
-  }
-  
-  .social-icons {
-    justify-content: center;
-    margin-top: 15px;
-  }
+  .text__cover { text-align: center; margin-bottom: 40px; }
+  .text__about, .text__product, .text__team { text-align: center; margin-bottom: 40px; }
+  .footer-column { margin-bottom: 40px; }
+  .footer-bottom { text-align: center; }
+  .social-icons { justify-content: center; margin-top: 15px; }
 }
 
 @media (max-width: 576px) {
-  .logo img {
-    width: 150px;
-  }
-  
-  .text__cover h1 {
-    font-size: 2rem;
-  }
-  
-  .btn__search {
-    padding: 8px 20px;
-  }
+  .logo img { width: 150px; }
+  .text__cover h1 { font-size: 2rem; }
+  .btn__search { padding: 8px 20px; }
 }
 
-/* --- INICIO ESTILOS ADICIONALES PARA LA VENTANA MODAL (ADAPTADO AL MOCKUP) --- */
 .modal-content {
   border-radius: 12px;
-  box-shadow: var(--shadow-card-hover); /* Usamos una sombra similar a la de tus tarjetas */
+  box-shadow: var(--shadow-card-hover);
 }
 
 .modal-header {
@@ -667,19 +591,19 @@ body {
 }
 
 .product-hero-modal .product-image-container {
-  border: 1px solid #e0e0e0; /* Borde similar al mockup */
+  border: 1px solid #e0e0e0;
   border-radius: 8px;
   padding: 20px;
-  margin-bottom: 20px; /* Espacio para las miniaturas */
+  margin-bottom: 20px;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 300px; /* Altura mínima para la imagen principal */
+  min-height: 300px;
 }
 
 .product-hero-modal .product-image-container img {
   max-width: 100%;
-  max-height: 350px; /* Ajustamos la altura máxima */
+  max-height: 350px;
   height: auto;
   border-radius: 4px;
 }
@@ -687,12 +611,12 @@ body {
 .product-hero-modal .thumbnail-gallery {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px; /* Espacio entre las miniaturas */
+  gap: 10px;
   margin-top: 15px;
 }
 
 .product-hero-modal .thumbnail-gallery .thumbnail-item {
-  width: 60px; /* Tamaño fijo para las miniaturas */
+  width: 60px;
   height: 60px;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
@@ -707,7 +631,7 @@ body {
 }
 
 .product-hero-modal .thumbnail-gallery .thumbnail-item:hover {
-  border-color: var(--main_color-primary); /* Resalta al pasar el mouse */
+  border-color: var(--main_color-primary);
 }
 
 .product-hero-modal .thumbnail-gallery .thumbnail-item.active {
@@ -719,24 +643,24 @@ body {
 .product-hero-modal .thumbnail-gallery .thumbnail-item img {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* Asegura que la imagen cubra el área */
+  object-fit: cover;
 }
 
 .product-hero-modal .product-info {
-  padding: 0; /* Ya tenemos padding en el modal-body */
+  padding: 0;
 }
 
 .product-hero-modal .product-category {
-  color: #777; 
+  color: #777;
   font-size: 0.9rem;
   font-weight: normal;
   letter-spacing: normal;
   margin-bottom: 5px;
-  text-transform: capitalize; 
+  text-transform: capitalize;
 }
 
 .product-hero-modal .product-title {
-  font-size: 2rem; /* Un poco más pequeño que antes */
+  font-size: 2rem;
   color: var(--color_text-secundary);
   margin-bottom: 10px;
   font-weight: 600;
@@ -744,7 +668,7 @@ body {
 
 .product-hero-modal .product-price {
   font-size: 1.6rem;
-  color: var(--color_text-secundary); 
+  color: var(--color_text-secundary);
   font-weight: 700;
   margin-bottom: 20px;
 }
@@ -764,20 +688,22 @@ body {
 }
 
 .product-hero-modal .quantity-selector {
-  justify-content: start; /* Alineamos a la izquierda */
+  justify-content: start;
   margin-bottom: 20px;
 }
+
 .product-hero-modal .quantity-btn {
-    width: 35px;
-    height: 35px;
-    font-size: 1rem;
-    background-color: #f0f0f0;
-    border: 1px solid #ddd;
+  width: 35px;
+  height: 35px;
+  font-size: 1rem;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
 }
+
 .product-hero-modal .quantity-input {
-    width: 50px;
-    height: 35px;
-    border: 1px solid #ddd;
+  width: 50px;
+  height: 35px;
+  border: 1px solid #ddd;
 }
 
 .product-hero-modal .add-to-cart-btn {
@@ -785,126 +711,122 @@ body {
   color: white;
   border: none;
   padding: 10px 25px;
-  border-radius: 8px; /* Bordes un poco más suaves */
+  border-radius: 8px;
   font-weight: 500;
   transition: var(--transition-medium);
   display: inline-flex;
   align-items: center;
-  margin-bottom: 0; /* Remove extra margin */
+  margin-bottom: 0;
 }
 
 .product-hero-modal .add-to-cart-btn:hover {
   background: #7d00a0;
   transform: translateY(-2px);
 }
+
 .product-hero-modal .add-to-cart-btn i {
-  margin-right: 8px; /* Espacio reducido */
+  margin-right: 8px;
 }
+
 .product-hero-modal .add-to-cart-btn.is-added {
   background: #7d00a0;
   box-shadow: 0 0 0 4px rgba(154, 0, 191, 0.25);
 }
+
 .product-hero-modal .add-to-cart-btn:disabled {
   opacity: 0.85;
   cursor: not-allowed;
 }
 
-/* Ocultamos las "Product Features" que no están en el mockup */
 .product-hero-modal .product-features {
   display: none;
 }
 
-/* Estilo para los Related Products que agregaremos al final del modal body */
 .related-products-modal {
-    margin-top: 40px;
-    padding-top: 30px;
-    border-top: 1px solid #eee;
+  margin-top: 40px;
+  padding-top: 30px;
+  border-top: 1px solid #eee;
 }
+
 .related-products-modal h3 {
-    font-size: 1.5rem;
-    color: var(--color_text-secundary);
-    margin-bottom: 20px;
+  font-size: 1.5rem;
+  color: var(--color_text-secundary);
+  margin-bottom: 20px;
 }
+
 .related-products-modal .related-card {
-    border: 1px solid #e0e0e0;
-    border-radius: 14px;
-    padding: 18px 16px;
-    text-align: center;
-    background: #fff;
-    color: inherit;
-    text-decoration: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: .75rem;
-    transition: transform .2s ease, box-shadow .2s ease;
-    cursor: pointer;
+  border: 1px solid #e0e0e0;
+  border-radius: 14px;
+  padding: 18px 16px;
+  text-align: center;
+  background: #fff;
+  color: inherit;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .75rem;
+  transition: transform .2s ease, box-shadow .2s ease;
+  cursor: pointer;
 }
+
 .related-products-modal .related-card:hover,
 .related-products-modal .related-card:focus {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-card-hover);
-    outline: none;
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card-hover);
+  outline: none;
 }
+
 .related-products-modal .related-card:focus-visible {
-    box-shadow: var(--shadow-card-hover), 0 0 0 3px rgba(154, 0, 191, 0.35);
+  box-shadow: var(--shadow-card-hover), 0 0 0 3px rgba(154, 0, 191, 0.35);
 }
+
 .related-products-modal .related-card-image {
-    width: 100%;
-    height: 110px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  width: 100%;
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
 .related-products-modal .related-card-image img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    border-radius: 8px;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
 }
+
 .related-products-modal .related-card-body h6 {
-    font-size: 0.95rem;
-    color: var(--color_text-secundary);
-    margin-bottom: 0;
+  font-size: 0.95rem;
+  color: var(--color_text-secundary);
+  margin-bottom: 0;
 }
+
 .related-products-modal .related-card-body .price {
-    font-size: 0.85rem;
-    color: var(--color_text-tertiary);
+  font-size: 0.85rem;
+  color: var(--color_text-tertiary);
 }
 
-/* * * --- INICIO DE LA SECCIÓN AÑADIDA --- 
- *
- */
-
-/* --- ESTILOS PARA PÁGINA DE INICIO DE SESIÓN --- */
 .login-hero {
   min-height: calc(100vh - 160px);
   padding: 4rem 1rem 6rem;
   display: flex;
   align-items: center;
   justify-content: center;
-
-  /* Reemplazamos el degradado por tu imagen de fondo */
   background-image: url('/TheHub/images/bg/bg.png');
   background-size: cover;
   background-attachment: fixed;
   background-position: center;
 }
 
-/* * --- FIN DE LA SECCIÓN AÑADIDA --- 
- *
- */
-
-/* --- ESTILOS PARA FORMULARIOS DE LOGIN Y REGISTRO --- */
-
 .form-container {
-  max-width: 450px; /* Un poco más de espacio */
+  max-width: 450px;
   margin: 50px auto;
   padding: 30px;
-  background-color: #ffffffcc; /* Fondo blanco semi-transparente */
+  background-color: #ffffffcc;
   border-radius: 20px;
   box-shadow: var(--shadow-card);
-  backdrop-filter: blur(10px); /* Efecto de vidrio esmerilado */
+  backdrop-filter: blur(10px);
   margin-bottom: 100px;
 }
 
@@ -938,29 +860,28 @@ body {
 }
 
 .form-container p {
-    margin-top: 1.5rem;
-    color: var(--color_text-tertiary);
-    text-align: center;
+  margin-top: 1.5rem;
+  color: var(--color_text-tertiary);
+  text-align: center;
 }
 
 .form-container a {
-    color: var(--main_color-primary);
-    text-decoration: none;
-    font-weight: 500;
+  color: var(--main_color-primary);
+  text-decoration: none;
+  font-weight: 500;
 }
 
 .form-container a:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
-/* --- ESTILOS PARA TRANSICIÓN SUAVE DE PÁGINA (VERSIÓN MEJORADA) --- */
 .page-transition {
-  opacity: 0; /* Las páginas comienzan invisibles por defecto */
+  opacity: 0;
   transition: opacity 300ms ease-in-out;
 }
 
 .page-transition.is-visible {
-  opacity: 1; /* Clase que aplicamos para que la página aparezca suavemente */
+  opacity: 1;
 }
 
 .cart-badge {
@@ -969,7 +890,6 @@ body {
   min-width: 1.75rem;
 }
 
-/* --- ESTILOS PARA EL CARRITO OFFCANVAS --- */
 .offcanvas-cart-item {
   display: flex;
   margin-bottom: 1.5rem;
@@ -1042,62 +962,46 @@ body {
   text-decoration: underline;
 }
 
-/* --- ESTILOS MEJORADOS PARA CONTROLES DE ADMIN --- */
-
-/* Contenedor de los botones de admin */
 #admin-controls {
-    display: flex; /* Asegura que se muestre como flexbox cuando sea visible */
-    align-items: center;
+  display: flex;
+  align-items: center;
 }
 
-/* Estilo para el botón de cerrar sesión */
 #logout-btn {
-    color: var(--color_text-tertiary);
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.2s ease;
+  color: var(--color_text-tertiary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
 }
 
-/* ——— CIERRA la regla anterior ——— */
 #logout-btn:hover {
   color: red;
   text-decoration: underline;
 }
-/* ——— FIN cierre ——— */
 
-
-/* Acceder = igual a Carrito pero morado (solo en el header) */
 .site-header a.btn__text {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: .5rem;
-
-  /* estilo pill como Carrito */
   background: transparent;
   color: var(--main_color-primary);
   border: 1px solid var(--main_color-primary);
   border-radius: 999px;
-
-  /* igual escala */
   padding: .5rem 1rem;
   line-height: 1;
   font-weight: 500;
   text-decoration: none;
   transition: var(--transition-medium);
-
-  /* sobre-escribe el margen del estilo genérico */
   margin-top: 0;
 }
 
-/* Hover coherente */
 .site-header a.btn__text:hover {
   background: var(--main_color-primary);
   color: #fff;
   text-decoration: none;
 }
 
-/* Altura visual pareja con el botón Carrito */
 @media (min-width: 992px) {
   .site-header a.btn__text,
   .site-header .btn.btn-outline-secondary.rounded-pill {

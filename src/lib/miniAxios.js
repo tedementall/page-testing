@@ -1,15 +1,22 @@
-// === src/lib/miniAxios.js ===
-// Cliente Axios minimalista compatible con Xano + Bearer Tokens (sin cookies)
-
 function buildURL(baseURL = "", url = "", params) {
   let target;
-  if (baseURL) {
+  
+  // Si baseURL es una ruta relativa (empieza con /)
+  if (baseURL && baseURL.startsWith('/')) {
+    const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost";
+    target = new URL((baseURL + (url || "")).replace(/\/+/g, '/'), origin);
+  } 
+  // Si baseURL es una URL completa
+  else if (baseURL && /^https?:/i.test(baseURL)) {
     target = new URL(url || "", baseURL);
-  } else if (/^https?:/i.test(url)) {
+  } 
+  // Si url es una URL completa
+  else if (/^https?:/i.test(url)) {
     target = new URL(url);
-  } else {
-    const fallbackBase =
-      typeof window !== "undefined" ? window.location.origin : "http://localhost";
+  } 
+  // Fallback
+  else {
+    const fallbackBase = typeof window !== "undefined" ? window.location.origin : "http://localhost";
     target = new URL(url || "", fallbackBase);
   }
 
@@ -63,12 +70,11 @@ function createAxiosInstance(defaultConfig = {}) {
       let requestConfig = {
         method: "get",
         headers: {},
-        withCredentials: false, // 🚫 sin cookies (evita CORS con Bearer)
+        withCredentials: false,
         ...instance.defaults,
         ...config,
       };
 
-      // Interceptores de request
       for (const { onFulfilled, onRejected } of requestInterceptors) {
         if (!onFulfilled) continue;
         try {
@@ -88,7 +94,6 @@ function createAxiosInstance(defaultConfig = {}) {
       const headers = ensureHeaders(requestConfig.headers);
       let payload = body ?? data;
 
-      // JSON automático (si no es FormData)
       if (payload && typeof payload === "object" && !(payload instanceof FormData)) {
         if (!headers.has("Content-Type")) {
           headers.set("Content-Type", "application/json");
@@ -102,12 +107,11 @@ function createAxiosInstance(defaultConfig = {}) {
         method,
         headers,
         body: ["GET", "HEAD"].includes(method) ? undefined : payload,
-        credentials: "same-origin", // ✅ no envía cookies a cross-origin
+        credentials: requestConfig.withCredentials ? "include" : "omit",
       };
 
       const response = await fetch(url, fetchOptions);
 
-      // Parse inteligente según content-type
       const contentType = response.headers.get("Content-Type") || "";
       let responseData;
 
@@ -122,7 +126,6 @@ function createAxiosInstance(defaultConfig = {}) {
       } else if (contentType.includes("text/")) {
         responseData = await response.text();
       } else {
-        // fallback
         try {
           responseData = await response.text();
         } catch {
@@ -139,7 +142,6 @@ function createAxiosInstance(defaultConfig = {}) {
         request: null,
       };
 
-      // Errores
       if (!response.ok) {
         const axiosError = new Error(`Request failed with status code ${response.status}`);
         axiosError.response = axiosResponse;
@@ -159,7 +161,6 @@ function createAxiosInstance(defaultConfig = {}) {
         throw axiosError;
       }
 
-      // Interceptores de response
       for (const { onFulfilled } of responseInterceptors) {
         if (onFulfilled) {
           axiosResponse = await onFulfilled(axiosResponse);
@@ -169,7 +170,6 @@ function createAxiosInstance(defaultConfig = {}) {
       return axiosResponse;
     },
 
-    // Helpers
     get(url, config) {
       return instance.request({ ...config, method: "get", url });
     },
@@ -190,7 +190,6 @@ function createAxiosInstance(defaultConfig = {}) {
   return instance;
 }
 
-// Export estilo Axios
 const axios = {
   create: (config) => createAxiosInstance(config),
 };
