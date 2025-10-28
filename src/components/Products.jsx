@@ -1,129 +1,79 @@
-import { useEffect, useMemo, useState } from "react"
-import ProductQuickView from "./ProductQuickView"
-import { formatCurrency } from "../utils/currency"
-import { ProductsApi } from "../api/coreApi"
+// src/components/Products.jsx
+import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import ProductCard from "./ProductCard";
+import { loadProductsOnce } from "../services/productsStore";
 
-export default function Products() {
-  const [quickViewProduct, setQuickViewProduct] = useState(null)
-  const [products, setProducts] = useState([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState(null)
+export default function Products({ limit = 6, title = "Nuestros favoritos" }) {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState(null);
+  const fetched = useRef(false); // evita doble-carga en StrictMode
 
   useEffect(() => {
-    let cancelled = false
-    setIsLoading(true)
-    setError(null)
+    if (fetched.current) return;
+    fetched.current = true;
 
-    ProductsApi.list({ limit: 12 })
-      .then((fetched) => {
-        if (cancelled) return
-        setProducts(Array.isArray(fetched) ? fetched : [])
-      })
-      .catch((err) => {
-        if (cancelled) return
-        console.error("Error cargando productos", err)
-        setError("No pudimos cargar los productos. Intenta nuevamente más tarde.")
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setIsLoading(false)
-        }
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  const normalizedProducts = useMemo(() => {
-    return products.map((product) => {
-      const images = Array.isArray(product.images)
-        ? product.images.filter(Boolean)
-        : product.image
-          ? [product.image]
-          : []
-      const primaryImage = product.image ?? images[0] ?? ""
-      return {
-        ...product,
-        images,
-        image: primaryImage,
-        price: typeof product.price === "number" ? product.price : Number(product.price) || 0
+    (async () => {
+      try {
+        setLoading(true);
+        const all = await loadProductsOnce(); // <-- una sola llamada a Xano
+        setItems(all.slice(0, limit));
+      } catch (e) {
+        console.error(e);
+        setErr(e);
+      } finally {
+        setLoading(false);
       }
-    })
-  }, [products])
-
-  const openQuickView = (product) => {
-    if (!product) {
-      setQuickViewProduct(null)
-      return
-    }
-
-    setQuickViewProduct(product)
-  }
-
-  const handleClose = () => {
-    setQuickViewProduct(null)
-  }
+    })();
+  }, [limit]);
 
   return (
-    <section className="container__product" id="productos">
+    <section className="container__product">
       <div className="container">
-        <div className="row align-items-center">
-          <div className="col-12 col-lg-6 text__product">
-            <p>NUESTROS FAVORITOS</p>
-            <h1>Accesorios que elevan tu experiencia digital</h1>
+        <div className="row align-items-center mb-3">
+          <div className="col">
+            <div className="text__product">
+              <p>NUESTROS FAVORITOS</p>
+              <h1>{title}</h1>
+              <p className="mb-0">
+                Curamos colecciones limitadas de accesorios premium para dispositivos móviles, gamers y creadores.
+                Haz clic en cualquiera para descubrir más detalles.
+              </p>
+            </div>
           </div>
-          <div className="col-12 col-lg-6">
-            <p className="text__about">
-              Curamos colecciones limitadas de accesorios premium para dispositivos móviles, gamers y
-              creadores. Haz clic en cualquiera para descubrir más detalles.
-            </p>
+          <div className="col-auto">
+            <Link to="/productos" className="btn btn-outline-primary rounded-pill">
+              Ver catálogo completo
+            </Link>
           </div>
         </div>
 
-        <div className="row mt-5 g-4">
-          {error ? (
-            <div className="col-12">
-              <div className="alert alert-danger" role="alert">
-                {error}
-              </div>
-            </div>
-          ) : null}
+        {err && (
+          <div className="alert alert-danger">No pudimos cargar productos.</div>
+        )}
 
-          {isLoading && !normalizedProducts.length ? (
-            <div className="col-12 text-center text-muted py-5">Cargando productos...</div>
-          ) : null}
-
-          {!isLoading && !normalizedProducts.length && !error ? (
-            <div className="col-12 text-center text-muted py-5">No hay productos disponibles en este momento.</div>
-          ) : null}
-
-          {normalizedProducts.map((product) => (
-            <div key={product.id} className="col-12 col-sm-6 col-lg-4">
-              <div
-                className="card__product"
-                role="button"
-                tabIndex={0}
-                onClick={() => openQuickView(product)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") openQuickView(product)
-                }}
-              >
-                {product.image ? (
-                  <img src={product.image} alt={product.name} className="img-fluid" />
-                ) : (
-                  <div className="ratio ratio-4x3 bg-light rounded-3"></div>
-                )}
-                <h2>{product.category}</h2>
-                <p>{product.name}</p>
-                <span className="price">{formatCurrency(product.price)}</span>
-              </div>
-            </div>
-          ))}
+        <div className="row">
+          {loading
+            ? Array.from({ length: limit }).map((_, i) => (
+                <div key={`sk-${i}`} className="col-12 col-sm-6 col-lg-4 mb-4">
+                  <article className="rounded-3 border bg-white p-3 h-100">
+                    <div className="ratio ratio-1x1 mb-3 rounded-2 bg-light" />
+                    <div className="placeholder-wave">
+                      <div className="placeholder col-3 mb-2" />
+                      <div className="placeholder col-7 mb-2" />
+                      <div className="placeholder col-4" />
+                    </div>
+                  </article>
+                </div>
+              ))
+            : items.map((p) => (
+                <div key={p.id} className="col-12 col-sm-6 col-lg-4 mb-4">
+                  <ProductCard p={p} />
+                </div>
+              ))}
         </div>
       </div>
-
-      <ProductQuickView product={quickViewProduct} onClose={handleClose} allProducts={normalizedProducts} />
     </section>
-  )
+  );
 }
