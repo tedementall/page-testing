@@ -1,121 +1,63 @@
 // src/api/ProductsApi.js
-import { httpCore } from "../api/http";
+import axios from "axios";
 
-/* ---------------- utilidades ---------------- */
+const CORE = "/xano-core";
 
-function firstImageFromAny(img, fallbackImages) {
-  // img puede ser: string | [{url|path|src}] | null
-  if (typeof img === "string") return img;
-  if (Array.isArray(img) && img.length) {
-    const f = img[0];
-    if (typeof f === "string") return f;
-    return f?.url || f?.path || f?.src || "";
-  }
-  // prueba también con images[]
-  if (Array.isArray(fallbackImages) && fallbackImages.length) {
-    const f = fallbackImages[0];
-    if (typeof f === "string") return f;
-    return f?.url || f?.path || f?.src || "";
-  }
-  return "";
-}
-
-// Convierte la respuesta a array:
-// [] | {items|data|results|list|products} → []
-function toArray(payload) {
-  if (!payload) return [];
-  if (Array.isArray(payload)) return payload;
-  return (
-    payload.items ||
-    payload.data ||
-    payload.results ||
-    payload.list ||
-    payload.products ||
-    []
-  );
-}
-
-function sortClient(items, sort) {
-  const arr = [...items];
-  switch (sort) {
-    case "price_asc":
-      arr.sort((a, b) => Number(a.price) - Number(b.price));
-      break;
-    case "price_desc":
-      arr.sort((a, b) => Number(b.price) - Number(a.price));
-      break;
-    case "new":
-    default:
-      arr.sort(
-        (a, b) =>
-          new Date(b.created_at || b.createdAt || 0) -
-          new Date(a.created_at || a.createdAt || 0)
-      );
-  }
-  return arr;
-}
-
-/* ---------------- endpoints ---------------- */
-
+// LIST/DETAIL (si ya los tienes, deja los tuyos)
 export async function fetchProducts(params = {}) {
-  const query = {
-    limit: params.limit ?? 100, // queremos traer TODO
-    page: params.page ?? 1,
-    sort: params.sort ?? "new",
-    category: params.category ?? params.categoria ?? undefined,
-    q: params.q || undefined,
-    // NO forzamos is_featured
+  const { data } = await axios.get(`${CORE}/product`, { params });
+  return data;
+}
+export async function fetchProductById(id) {
+  const { data } = await axios.get(`${CORE}/product/${id}`);
+  return data;
+}
+
+// Paso 1: crear producto SIN imágenes (usa image_url: [])
+export async function createProduct(payload) {
+  const body = {
+    name: payload.name?.trim(),
+    description: payload.description?.trim() || "",
+    price: Number(payload.price) || 0,
+    stock_quantity: Number(payload.stock_quantity ?? payload.stock ?? 0),
+    category: payload.category?.trim() || "", // si tu endpoint la permite vacía
+    brand: payload.brand?.trim() || undefined, // si tu schema no lo acepta, bórralo
+    image_url: [], // <- clave correcta en tu core
   };
 
-  // Asegúrate que el proxy apunte al grupo correcto
-  const res = await httpCore.get("/product", { params: query });
-  const payload = res?.data ?? res;
-  let items = toArray(payload).map((p) => {
-    // Xano tuyo: image_url es un ARRAY de objetos {url}, a veces hay images[]
-    const cover = firstImageFromAny(p.image_url, p.images);
-    return { ...p, image_url: cover };
-  });
+  // elimina keys undefined para no gatillar validaciones
+  Object.keys(body).forEach((k) => body[k] === undefined && delete body[k]);
 
-  // filtros en cliente
-  if (query.q) {
-    const t = String(query.q).toLowerCase();
-    items = items.filter(
-      (p) =>
-        String(p.name || "").toLowerCase().includes(t) ||
-        String(p.description || "").toLowerCase().includes(t)
-    );
-  }
-  if (query.category) {
-    items = items.filter(
-      (p) =>
-        String(p.category || "").toLowerCase() ===
-        String(query.category).toLowerCase()
-    );
-  }
-
-  items = sortClient(items, query.sort);
-
-  const total =
-    payload.total ??
-    payload.count ??
-    payload.pagination?.total ??
-    items.length;
-
-  // Log de diagnóstico (puedes quitarlo luego)
-  console.log(
-    "[ProductsApi] /product → items:",
-    items.length,
-    "base:",
-    httpCore?.defaults?.baseURL
-  );
-
-  return { items, total };
+  const { data } = await axios.post(`${CORE}/product`, body);
+  return data;
 }
 
-export async function fetchProductById(id) {
-  if (!id) throw new Error("product id requerido");
-  const res = await httpCore.get(`/product/${id}`);
-  const p = res?.data ?? res;
-  const cover = firstImageFromAny(p.image_url, p.images);
-  return { ...p, image_url: cover };
+// Paso 2: subir múltiples imágenes con content[]
+export async function uploadImages(files) {
+  if (!files || !files.length) return [];
+  const fd = new FormData();
+  [...files].forEach((f) => fd.append("content[]", f));
+  const { data } = await axios.post(`${CORE}/upload/image`, fd);
+  return data; // array con metadatos
+}
+
+// Paso 3: vincular imágenes al producto (image_url)
+export async function patchProductImages(productId, uploadedArray) {
+  const body = { image_url: uploadedArray };
+  const { data } = await axios.patch(`${CORE}/product/${productId}`, body);
+  return data;
+}
+
+// Helper 1→2→3
+export async function createProductWithImages(payload, files) {
+  const created = await createProduct(payload);
+  const id = created?.id;
+  if (!id) throw new Error("No se recibió id de producto del Paso 1");
+
+  const uploaded = await uploadImages(files || []);
+  const updated = uploaded.length
+    ? await patchProductImages(id, uploaded)
+    : created;
+
+  return { created, uploadedImages: uploaded, updated };
 }

@@ -1,5 +1,6 @@
 // src/App.jsx
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import OffcanvasCart from "./components/OffcanvasCart";
@@ -10,9 +11,14 @@ import CartPage from "./pages/CartPage";
 import Login from "./pages/Login";
 import ProductosPage from "./pages/ProductosPage";
 
+// 🔐 Guard y layout admin (paths según tu estructura)
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import AdminLayout from "./AdminLayout";
+
+// Páginas admin
 import AdminDashboard from "./admin/Dashboard.jsx";
+import ProductsAdmin from "./admin/ProductsAdmin.jsx";
+import AddProduct from "./admin/AddProduct.jsx";
 
 export default function App() {
   const location = useLocation();
@@ -37,6 +43,8 @@ export default function App() {
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="products" element={<ProductsAdmin />} />
+            <Route path="add-product" element={<AddProduct />} />
           </Route>
         </Route>
 
