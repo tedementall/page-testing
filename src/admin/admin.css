@@ -136,3 +136,37 @@ body {
     vertical-align: middle;
     border-top: 1px solid rgba(255, 255, 255, 0.1); /* Línea sutil para separar filas */
 }
+
+/* === Mejoras visuales para ProductsAdmin === */
+
+.table-container .table tbody tr td {
+  background: rgba(0, 0, 0, 0.05); /* sutil contraste con el fondo */
+}
+
+.table-container .table tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.08); /* efecto hover suave */
+}
+
+/* Nombre del producto */
+.table .fw-semibold.text-white {
+  color: #fff !important;
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  display: block;
+  max-width: 680px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Descripción del producto */
+.table .text-light.text-opacity-75 {
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-size: 0.85rem;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* solo 2 líneas visibles */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
