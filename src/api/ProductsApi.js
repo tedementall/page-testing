@@ -1,63 +1,188 @@
 // src/api/ProductsApi.js
-import axios from "axios";
+import { httpCore } from "./http"; // USA TU INSTANCIA CONFIGURADA
 
-const CORE = "/xano-core";
+const ENDPOINT = "/product";
+const UPLOAD_ENDPOINT = "/upload/image";
 
-// LIST/DETAIL (si ya los tienes, deja los tuyos)
+// ============================================
+// NORMALIZACIÓN (CRÍTICO)
+// ============================================
+function normalizeImages(p) {
+  const raw = p?.image_url ?? p?.images ?? [];
+  if (!raw) return [];
+  if (typeof raw === "string") return [raw];
+  if (Array.isArray(raw)) {
+    return raw.map(it => 
+      typeof it === "string" ? it : (it?.url || it?.path || "")
+    ).filter(Boolean);
+  }
+  return [];
+}
+
+function normalizeProduct(p) {
+  if (!p) return null;
+  return {
+    ...p,
+    id: p.id,
+    name: p.name || "",
+    description: p.description || "",
+    price: Number(p.price) || 0,
+    stock_quantity: p.stock_quantity ?? p.stock ?? 0,
+    category: p.category ?? p.categoria ?? "",
+    brand: p.brand || "",
+    image_url: normalizeImages(p),
+    created_at: p.created_at || p.createdAt || null,
+  };
+}
+
+// ============================================
+// FETCH PRODUCTS (CON NORMALIZACIÓN)
+// ============================================
 export async function fetchProducts(params = {}) {
-  const { data } = await axios.get(`${CORE}/product`, { params });
-  return data;
-}
-export async function fetchProductById(id) {
-  const { data } = await axios.get(`${CORE}/product/${id}`);
-  return data;
+  try {
+    console.log("[ProductsApi] Fetching products with params:", params);
+    
+    const query = {};
+    if (params.limit != null) query.limit = params.limit;
+    if (params.page != null) query.page = params.page;
+    if (params.sort) query.sort = params.sort;
+    if (params.category ?? params.categoria) {
+      query.category = params.category ?? params.categoria;
+    }
+    if (params.q) query.q = params.q;
+    if (typeof params.is_featured === "boolean") {
+      query.is_featured = params.is_featured;
+    }
+
+    const res = await httpCore.get(ENDPOINT, { params: query });
+    const rawData = res?.data;
+
+    console.log("[ProductsApi] Raw response:", rawData);
+
+    // XANO puede devolver { items: [...] } o directamente [...]
+    const list = Array.isArray(rawData) 
+      ? rawData 
+      : Array.isArray(rawData?.items) 
+        ? rawData.items 
+        : [];
+
+    console.log("[ProductsApi] Products found:", list.length);
+
+    const items = list.map(normalizeProduct).filter(Boolean);
+
+    return {
+      items,
+      total: rawData?.total ?? items.length,
+      page: Number(query.page ?? 1),
+      limit: Number(query.limit ?? 12),
+    };
+  } catch (error) {
+    console.error("[ProductsApi] Error fetching products:", error);
+    console.error("[ProductsApi] Error details:", {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+    });
+    throw error;
+  }
 }
 
-// Paso 1: crear producto SIN imágenes (usa image_url: [])
+// ============================================
+// FETCH SINGLE PRODUCT
+// ============================================
+export async function fetchProductById(id) {
+  try {
+    const res = await httpCore.get(`${ENDPOINT}/${id}`);
+    const p = res?.data ?? {};
+    return normalizeProduct(p);
+  } catch (error) {
+    console.error(`[ProductsApi] Error fetching product ${id}:`, error);
+    throw error;
+  }
+}
+
+// ============================================
+// CREATE PRODUCT (SIN IMÁGENES)
+// ============================================
 export async function createProduct(payload) {
   const body = {
     name: payload.name?.trim(),
     description: payload.description?.trim() || "",
     price: Number(payload.price) || 0,
     stock_quantity: Number(payload.stock_quantity ?? payload.stock ?? 0),
-    category: payload.category?.trim() || "", // si tu endpoint la permite vacía
-    brand: payload.brand?.trim() || undefined, // si tu schema no lo acepta, bórralo
-    image_url: [], // <- clave correcta en tu core
+    category: payload.category?.trim() || "",
+    brand: payload.brand?.trim() || "",
+    image_url: [],
   };
 
-  // elimina keys undefined para no gatillar validaciones
-  Object.keys(body).forEach((k) => body[k] === undefined && delete body[k]);
+  // Elimina keys undefined
+  Object.keys(body).forEach((k) => {
+    if (body[k] === undefined || body[k] === "") delete body[k];
+  });
 
-  const { data } = await axios.post(`${CORE}/product`, body);
-  return data;
+  try {
+    const res = await httpCore.post(ENDPOINT, body);
+    return normalizeProduct(res?.data);
+  } catch (error) {
+    console.error("[ProductsApi] Error creating product:", error);
+    throw error;
+  }
 }
 
-// Paso 2: subir múltiples imágenes con content[]
+// ============================================
+// UPLOAD IMAGES
+// ============================================
 export async function uploadImages(files) {
   if (!files || !files.length) return [];
+  
   const fd = new FormData();
   [...files].forEach((f) => fd.append("content[]", f));
-  const { data } = await axios.post(`${CORE}/upload/image`, fd);
-  return data; // array con metadatos
+
+  try {
+    const res = await httpCore.post(UPLOAD_ENDPOINT, fd, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res?.data || [];
+  } catch (error) {
+    console.error("[ProductsApi] Error uploading images:", error);
+    throw error;
+  }
 }
 
-// Paso 3: vincular imágenes al producto (image_url)
+// ============================================
+// PATCH PRODUCT IMAGES
+// ============================================
 export async function patchProductImages(productId, uploadedArray) {
   const body = { image_url: uploadedArray };
-  const { data } = await axios.patch(`${CORE}/product/${productId}`, body);
-  return data;
+  
+  try {
+    const res = await httpCore.patch(`${ENDPOINT}/${productId}`, body);
+    return normalizeProduct(res?.data);
+  } catch (error) {
+    console.error("[ProductsApi] Error patching images:", error);
+    throw error;
+  }
 }
 
-// Helper 1→2→3
+// ============================================
+// HELPER: CREATE WITH IMAGES
+// ============================================
 export async function createProductWithImages(payload, files) {
   const created = await createProduct(payload);
   const id = created?.id;
-  if (!id) throw new Error("No se recibió id de producto del Paso 1");
+  
+  if (!id) {
+    throw new Error("No se recibió id de producto del Paso 1");
+  }
 
   const uploaded = await uploadImages(files || []);
   const updated = uploaded.length
     ? await patchProductImages(id, uploaded)
     : created;
 
-  return { created, uploadedImages: uploaded, updated };
+  return { 
+    created, 
+    uploadedImages: uploaded, 
+    updated 
+  };
 }
