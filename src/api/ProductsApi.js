@@ -1,55 +1,121 @@
+// src/api/ProductsApi.js
 import { httpCore } from "../api/http";
 
-const ENDPOINT = "/product";
+/* ---------------- utilidades ---------------- */
 
-function normalizeImages(p) {
-  // Acepta image_url: [{url|path}] | images: [{url|path}] | string[]
-  const raw = p?.image_url ?? p?.images ?? [];
-  if (!raw) return [];
-  if (typeof raw === "string") return [raw];
-  if (Array.isArray(raw)) {
-    return raw.map(it => typeof it === "string" ? it : (it?.url || it?.path || "")).filter(Boolean);
+function firstImageFromAny(img, fallbackImages) {
+  // img puede ser: string | [{url|path|src}] | null
+  if (typeof img === "string") return img;
+  if (Array.isArray(img) && img.length) {
+    const f = img[0];
+    if (typeof f === "string") return f;
+    return f?.url || f?.path || f?.src || "";
   }
-  return [];
+  // prueba también con images[]
+  if (Array.isArray(fallbackImages) && fallbackImages.length) {
+    const f = fallbackImages[0];
+    if (typeof f === "string") return f;
+    return f?.url || f?.path || f?.src || "";
+  }
+  return "";
 }
 
+// Convierte la respuesta a array:
+// [] | {items|data|results|list|products} → []
+function toArray(payload) {
+  if (!payload) return [];
+  if (Array.isArray(payload)) return payload;
+  return (
+    payload.items ||
+    payload.data ||
+    payload.results ||
+    payload.list ||
+    payload.products ||
+    []
+  );
+}
+
+function sortClient(items, sort) {
+  const arr = [...items];
+  switch (sort) {
+    case "price_asc":
+      arr.sort((a, b) => Number(a.price) - Number(b.price));
+      break;
+    case "price_desc":
+      arr.sort((a, b) => Number(b.price) - Number(a.price));
+      break;
+    case "new":
+    default:
+      arr.sort(
+        (a, b) =>
+          new Date(b.created_at || b.createdAt || 0) -
+          new Date(a.created_at || a.createdAt || 0)
+      );
+  }
+  return arr;
+}
+
+/* ---------------- endpoints ---------------- */
+
 export async function fetchProducts(params = {}) {
-  const query = {};
-  if (params.limit != null) query.limit = params.limit;
-  if (params.page  != null) query.page  = params.page;
-  if (params.sort)          query.sort  = params.sort;
-  if (params.category ?? params.categoria)
-    query.category = params.category ?? params.categoria;
-  if (params.q) query.q = params.q;
-  if (typeof params.is_featured === "boolean") query.is_featured = params.is_featured;
-
-  const res = await httpCore.get(ENDPOINT, { params: query });
-  const data = res?.data;
-
-  const list = Array.isArray(data) ? data : [];
-  const items = list.map(p => ({
-    ...p,
-    // normaliza diferencias de schema
-    image_url: normalizeImages(p),              // para el ProductCard (galería)
-    stock_quantity: p.stock_quantity ?? p.stock ?? null,
-    category: p.category ?? p.categoria ?? "",
-  }));
-
-  return {
-    items,
-    total: items.length,
-    page: Number(query.page ?? 1),
-    limit: Number(query.limit ?? 12),
+  const query = {
+    limit: params.limit ?? 100, // queremos traer TODO
+    page: params.page ?? 1,
+    sort: params.sort ?? "new",
+    category: params.category ?? params.categoria ?? undefined,
+    q: params.q || undefined,
+    // NO forzamos is_featured
   };
+
+  // Asegúrate que el proxy apunte al grupo correcto
+  const res = await httpCore.get("/product", { params: query });
+  const payload = res?.data ?? res;
+  let items = toArray(payload).map((p) => {
+    // Xano tuyo: image_url es un ARRAY de objetos {url}, a veces hay images[]
+    const cover = firstImageFromAny(p.image_url, p.images);
+    return { ...p, image_url: cover };
+  });
+
+  // filtros en cliente
+  if (query.q) {
+    const t = String(query.q).toLowerCase();
+    items = items.filter(
+      (p) =>
+        String(p.name || "").toLowerCase().includes(t) ||
+        String(p.description || "").toLowerCase().includes(t)
+    );
+  }
+  if (query.category) {
+    items = items.filter(
+      (p) =>
+        String(p.category || "").toLowerCase() ===
+        String(query.category).toLowerCase()
+    );
+  }
+
+  items = sortClient(items, query.sort);
+
+  const total =
+    payload.total ??
+    payload.count ??
+    payload.pagination?.total ??
+    items.length;
+
+  // Log de diagnóstico (puedes quitarlo luego)
+  console.log(
+    "[ProductsApi] /product → items:",
+    items.length,
+    "base:",
+    httpCore?.defaults?.baseURL
+  );
+
+  return { items, total };
 }
 
 export async function fetchProductById(id) {
-  const res = await httpCore.get(`${ENDPOINT}/${id}`);
-  const p = res?.data ?? {};
-  return {
-    ...p,
-    image_url: normalizeImages(p),
-    stock_quantity: p.stock_quantity ?? p.stock ?? null,
-    category: p.category ?? p.categoria ?? "",
-  };
+  if (!id) throw new Error("product id requerido");
+  const res = await httpCore.get(`/product/${id}`);
+  const p = res?.data ?? res;
+  const cover = firstImageFromAny(p.image_url, p.images);
+  return { ...p, image_url: cover };
 }
