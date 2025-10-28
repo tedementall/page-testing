@@ -1,4 +1,3 @@
-// src/pages/ExplorarPage.jsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import { loadProductsOnce } from "../services/productsStore";
 import ProductCard from "../components/ProductCard";
@@ -17,7 +16,6 @@ export default function ExplorarPage() {
 
     (async () => {
       setLoading(true);
-      // fuerza una recarga esta vez por si el cache tenía el grupo viejo
       const data = await loadProductsOnce({ force: true });
       setAll(data);
       setLoading(false);

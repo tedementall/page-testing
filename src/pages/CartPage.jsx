@@ -2,30 +2,27 @@ import { Link } from "react-router-dom"
 import { useCallback } from "react"
 import { useCart } from "../context/CartContext"
 import { formatCurrency } from "../utils/currency"
-// 1. Importamos 'motion' de framer-motion
 import { motion } from "framer-motion"
 
-// 2. Definimos las variantes de animación (las mismas que en Login.jsx y Home.jsx)
 const pageVariants = {
   initial: {
     opacity: 0,
-    x: "-50vw" // Inicia deslizando desde la izquierda
+    x: "-50vw" 
   },
   in: {
     opacity: 1,
-    x: 0 // Termina en el centro
+    x: 0 
   },
   out: {
     opacity: 0,
-    x: "50vw" // Se va deslizando hacia la derecha
+    x: "50vw" 
   }
 }
 
-// 3. Definimos el tipo de transición (la misma que en Login.jsx y Home.jsx)
 const pageTransition = {
   type: "tween",
   ease: "easeInOut",
-  duration: 0.4 // Duración de la animación en segundos
+  duration: 0.4 
 }
 
 
@@ -59,10 +56,8 @@ export default function CartPage() {
     [removeItem]
   )
 
-  // --- PRIMER RETURN (Carrito Vacío) ---
   if (!items.length) {
     return (
-      // 4. Aplicamos 'motion.main' aquí
       <motion.main 
         className="main-content-padding"
         initial="initial"
@@ -84,9 +79,7 @@ export default function CartPage() {
     )
   }
 
-  // --- SEGUNDO RETURN (Carrito Lleno) ---
   return (
-    // 5. Aplicamos 'motion.main' aquí también
     <motion.main 
       className="main-content-padding"
       initial="initial"

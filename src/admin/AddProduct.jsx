@@ -1,4 +1,3 @@
-// src/admin/AddProduct.jsx
 import { useState } from "react";
 import { createProductWithImages } from "../api/ProductsApi";
 import { useNavigate } from "react-router-dom";
@@ -16,7 +15,7 @@ export default function AddProduct() {
     name: "",
     description: "",
     price: 0,
-    stock: 0, // lo mapeamos a stock_quantity al enviar
+    stock: 0, 
     brand: "",
     category: "",
   });
@@ -26,7 +25,7 @@ export default function AddProduct() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
 
-  // Normaliza automáticamente category a minúsculas
+  
   const onChange = (e) => {
     const { name, value } = e.target;
     setForm((p) => ({
@@ -43,14 +42,14 @@ export default function AddProduct() {
     setResult(null);
     setStatus("Procesando…");
 
-    // Payload con las claves que Xano espera + category normalizado
+   
     const payload = {
       name: (form.name || "").trim(),
       description: (form.description || "").trim(),
       price: Number(form.price) || 0,
-      stock_quantity: Number(form.stock) || 0, // Xano usa stock_quantity
+      stock_quantity: Number(form.stock) || 0, 
       brand: (form.brand || "").trim(),
-      category: normalizeCategory(form.category), // 👈 siempre minúsculas
+      category: normalizeCategory(form.category), 
     };
 
     try {
@@ -59,7 +58,7 @@ export default function AddProduct() {
       setResult(res);
       setStatus("Producto creado ✅");
 
-      // reset suave
+      
       setForm({
         name: "",
         description: "",
@@ -71,10 +70,9 @@ export default function AddProduct() {
       e.target.reset();
       setFiles([]);
 
-      // Si quieres redirigir después de crear:
-      // setTimeout(() => nav("/admin/products"), 900);
+      
     } catch (err) {
-      // 🧯 Debug rico: muestra status y payload de Xano
+      // Debug: muestra status y payload de Xano
       const status = err?.response?.status;
       const data = err?.response?.data;
 
