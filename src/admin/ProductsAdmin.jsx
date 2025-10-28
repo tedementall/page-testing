@@ -1,118 +1,105 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { fetchProducts } from "../api/ProductsApi";
+// src/admin/ProductsAdmin.jsx
+import { useEffect, useMemo, useState } from "react";
+import { fetchProducts, deleteProduct } from "../api/ProductsApi";
 
-function useDebounced(value, delay = 350) {
-  const [v, setV] = useState(value);
-  useEffect(() => {
-    const id = setTimeout(() => setV(value), delay);
-    return () => clearTimeout(id);
-  }, [value, delay]);
-  return v;
-}
-
-const format = {
-  currency(n) {
-    const v = Number(n || 0);
-    try {
-      return new Intl.NumberFormat("es-CL", {
-        style: "currency",
-        currency: "CLP",
-        maximumFractionDigits: 0,
-      }).format(v);
-    } catch {
-      return `$${v.toLocaleString("es-CL")}`;
-    }
-  },
-};
+const norm = (v) => String(v || "").trim().toLowerCase();
+const cap = (s) => (s ? s[0].toUpperCase() + s.slice(1) : s);
+const fmtCLP = (n) =>
+  typeof n === "number" ? n.toLocaleString("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 }) : "—";
 
 export default function ProductsAdmin() {
-  const boot = useRef(false);
-  const [raw, setRaw] = useState([]);
+  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError]   = useState(null);
+  const [err, setErr] = useState("");
 
+  // UI state
   const [q, setQ] = useState("");
-  const [cat, setCat] = useState("Todas");
-  const [sort, setSort] = useState("new");
-  const qDebounced = useDebounced(q, 350);
+  const [category, setCategory] = useState("todas");
+  const [sort, setSort] = useState("newest"); // newest | price_asc | price_desc
+  const [deletingId, setDeletingId] = useState(null);
 
-  async function load() {
+  async function loadProducts() {
     setLoading(true);
-    setError(null);
+    setErr("");
     try {
-      const { items } = await fetchProducts({ limit: 100, page: 1, sort: "new" });
-      setRaw(items ?? []);
+      const data = await fetchProducts({ page: 1, limit: 100 });
+      // fetchProducts devuelve { items, total, ... }
+      const list = Array.isArray(data?.items) ? data.items : [];
+      setItems(list);
     } catch (e) {
-      setError(e);
+      console.error("[ProductsAdmin] load error:", e?.response?.data || e);
+      setErr(e?.message || "Error cargando productos");
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    if (boot.current) return;
-    boot.current = true;
-    load();
+    loadProducts();
   }, []);
 
   const categories = useMemo(() => {
-    const set = new Set(raw.map((p) => (p.category || "").trim()).filter(Boolean));
-    return ["Todas", ...Array.from(set)];
-  }, [raw]);
+    const set = new Set(items.map((p) => norm(p.category)).filter(Boolean));
+    return ["todas", ...Array.from(set)];
+  }, [items]);
 
-  const data = useMemo(() => {
-    let rows = [...raw];
+  const visible = useMemo(() => {
+    let list = items;
 
-    if (qDebounced.trim()) {
-      const t = qDebounced.trim().toLowerCase();
-      rows = rows.filter(
-        (p) =>
-          String(p.name || "").toLowerCase().includes(t) ||
-          String(p.description || "").toLowerCase().includes(t)
+    if (category !== "todas") {
+      list = list.filter((p) => norm(p.category) === norm(category));
+    }
+
+    if (q) {
+      const s = norm(q);
+      list = list.filter(
+        (p) => norm(p.name).includes(s) || norm(p.description).includes(s)
       );
     }
 
-    if (cat !== "Todas") {
-      rows = rows.filter(
-        (p) => (p.category || "").toLowerCase() === cat.toLowerCase()
+    if (sort === "price_asc") list = [...list].sort((a, b) => a.price - b.price);
+    else if (sort === "price_desc") list = [...list].sort((a, b) => b.price - a.price);
+    else list = [...list].sort((a, b) => (b.id ?? 0) - (a.id ?? 0)); // newest (por id)
+
+    return list;
+  }, [items, category, q, sort]);
+
+  async function handleDelete(p) {
+    if (!p?.id) return;
+    const ok = window.confirm(`¿Borrar "${p.name}"? Esta acción no se puede deshacer.`);
+    if (!ok) return;
+
+    setDeletingId(p.id);
+    const prev = items;
+    setItems((xs) => xs.filter((x) => x.id !== p.id));
+
+    try {
+      await deleteProduct(p.id);
+    } catch (e) {
+      console.error("[deleteProduct] error:", e?.response?.data || e);
+      alert(
+        `No se pudo borrar: ${
+          e?.response?.data?.message || e?.message || "Error desconocido"
+        }`
       );
+      setItems(prev); // revert
+    } finally {
+      setDeletingId(null);
     }
-
-    switch (sort) {
-      case "price_asc":
-        rows.sort((a, b) => Number(a.price) - Number(b.price));
-        break;
-      case "price_desc":
-        rows.sort((a, b) => Number(b.price) - Number(a.price));
-        break;
-      case "stock_desc":
-        rows.sort((a, b) => Number(b.stock_quantity ?? b.stock ?? 0) - Number(a.stock_quantity ?? a.stock ?? 0));
-        break;
-      case "new":
-      default:
-        rows.sort(
-          (a, b) =>
-            new Date(b.created_at || b.createdAt || 0) -
-            new Date(a.created_at || a.createdAt || 0)
-        );
-    }
-
-    return rows;
-  }, [raw, qDebounced, cat, sort]);
+  }
 
   return (
-    <div className="content-panel">
+    <div className="container py-4">
       <div className="d-flex align-items-center justify-content-between mb-3">
-        <h1 className="mb-0">Productos</h1>
-        <button className="btn btn-sm btn-outline-light" onClick={load} disabled={loading}>
-          {loading ? "Actualizando…" : "Refrescar"}
+        <h2 className="mb-0">Productos</h2>
+        <button className="btn btn-outline-light" onClick={loadProducts} disabled={loading}>
+          {loading ? "Cargando…" : "Refrescar"}
         </button>
       </div>
 
       {/* Filtros */}
       <div className="row g-3 mb-3">
-        <div className="col-12 col-md-4">
-          <label className="form-label">Buscar</label>
+        <div className="col-md-5">
           <input
             className="form-control"
             placeholder="Nombre o descripción…"
@@ -120,100 +107,109 @@ export default function ProductsAdmin() {
             onChange={(e) => setQ(e.target.value)}
           />
         </div>
-        <div className="col-6 col-md-4">
-          <label className="form-label">Categoría</label>
-          <select className="form-select" value={cat} onChange={(e) => setCat(e.target.value)}>
+
+        <div className="col-md-3">
+          <select
+            className="form-select"
+            value={category}
+            onChange={(e) => setCategory(norm(e.target.value))}
+          >
             {categories.map((c) => (
-              <option key={c}>{c}</option>
+              <option key={c} value={c}>
+                {cap(c)}
+              </option>
             ))}
           </select>
         </div>
-        <div className="col-6 col-md-4">
-          <label className="form-label">Ordenar</label>
-          <select className="form-select" value={sort} onChange={(e) => setSort(e.target.value)}>
-            <option value="new">Más nuevos</option>
+
+        <div className="col-md-3">
+          <select
+            className="form-select"
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+          >
+            <option value="newest">Más nuevos</option>
             <option value="price_asc">Precio: menor a mayor</option>
             <option value="price_desc">Precio: mayor a menor</option>
-            <option value="stock_desc">Stock: mayor a menor</option>
           </select>
+        </div>
+
+        <div className="col-md-1 d-grid">
+          <button
+            className="btn btn-outline-secondary"
+            onClick={() => {
+              setQ("");
+              setCategory("todas");
+              setSort("newest");
+            }}
+          >
+            Limpiar
+          </button>
         </div>
       </div>
 
-      {error && (
-        <div className="alert alert-danger">
-          Error cargando productos: {error.message ?? "desconocido"}
-        </div>
+      {/* Estados */}
+      {loading && <div className="alert alert-info">Cargando productos…</div>}
+      {err && <div className="alert alert-danger">{err}</div>}
+      {!loading && !err && visible.length === 0 && (
+        <div className="alert alert-secondary">No hay productos.</div>
       )}
 
-      <div className="table-container">
-        <div className="d-flex align-items-center justify-content-between mb-2">
-          <small className="text-light">Mostrando {data.length} producto(s)</small>
-        </div>
-
-        <div className="table-responsive">
-          <table className="table align-middle">
-            <thead>
-              <tr>
-                <th style={{ width: 70 }}>Img</th>
-                <th>Nombre</th>
-                <th>Categoría</th>
-                <th className="text-end">Precio</th>
-                <th className="text-end">Stock</th>
-                <th className="text-end" style={{ width: 140 }}>Creado</th>
+      {/* Tabla */}
+      <div className="table-responsive">
+        <table className="table table-dark table-hover align-middle">
+          <thead>
+            <tr>
+              <th style={{ width: 64 }}>Img</th>
+              <th>Nombre</th>
+              <th style={{ width: 140 }}>Categoría</th>
+              <th style={{ width: 120 }}>Precio</th>
+              <th style={{ width: 100 }}>Stock</th>
+              <th style={{ width: 140 }}>Creado</th>
+              <th style={{ width: 140 }}></th>
+            </tr>
+          </thead>
+          <tbody>
+            {visible.map((p) => (
+              <tr key={p.id}>
+                <td>
+                  {p.image_url?.[0] ? (
+                    <img
+                      src={p.image_url[0]}
+                      alt={p.name}
+                      style={{ width: 48, height: 48, objectFit: "cover", borderRadius: 8 }}
+                    />
+                  ) : (
+                    <div style={{ width: 48, height: 48, background: "#555", borderRadius: 8 }} />
+                  )}
+                </td>
+                <td>
+                  <div className="fw-semibold">{p.name}</div>
+                  <div className="small text-muted text-truncate" style={{ maxWidth: 520 }}>
+                    {p.description}
+                  </div>
+                </td>
+                <td className="text-capitalize">{p.category || "—"}</td>
+                <td>{fmtCLP(p.price)}</td>
+                <td>{p.stock_quantity ?? 0}</td>
+                <td>{p.created_at ? new Date(p.created_at).toLocaleDateString("es-CL") : "—"}</td>
+                <td className="text-end">
+                  <div className="btn-group">
+                    {/* Botón borrar */}
+                    <button
+                      className="btn btn-outline-danger btn-sm"
+                      onClick={() => handleDelete(p)}
+                      disabled={deletingId === p.id}
+                      title="Borrar producto"
+                    >
+                      {deletingId === p.id ? "Borrando…" : "Borrar"}
+                    </button>
+                  </div>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {loading
-                ? Array.from({ length: 6 }).map((_, i) => (
-                    <tr key={i}>
-                      <td><div className="placeholder" style={{ width:50, height:50, borderRadius:8 }} /></td>
-                      <td colSpan={5}><div className="placeholder col-6" /></td>
-                    </tr>
-                  ))
-                : data.map((p) => (
-                    <tr key={p.id}>
-                      <td>
-                        <div
-                          style={{
-                            width: 50, height: 50,
-                            borderRadius: 8, overflow: "hidden",
-                            background: "#f1f3f5",
-                          }}
-                        >
-                          {p.image_url ? (
-                            <img
-                              src={p.image_url}
-                              alt={p.name}
-                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                              loading="lazy"
-                            />
-                          ) : null}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="fw-semibold text-white">{p.name}</div>
-                        <small className="text-light text-opacity-75">{p.description || "—"}</small>
-                      </td>
-                      <td>{p.category || "—"}</td>
-                      <td className="text-end">{format.currency(p.price)}</td>
-                      <td className="text-end">{p.stock_quantity ?? p.stock ?? 0}</td>
-                      <td className="text-end">
-                        {p.created_at
-                          ? new Date(p.created_at).toLocaleDateString()
-                          : "—"}
-                      </td>
-                    </tr>
-                  ))}
-              {!loading && !data.length && (
-                <tr>
-                  <td colSpan={6}>
-                    <div className="text-center text-light">Sin resultados.</div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
