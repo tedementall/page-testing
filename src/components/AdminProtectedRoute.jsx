@@ -1,19 +1,31 @@
+// src/components/AdminProtectedRoute.jsx
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Navigate, Outlet } from "react-router-dom";
 
 export default function AdminProtectedRoute() {
-  const { user, isLoading } = useAuth();
+  const { isAdmin, isAuthenticated, status, isLoading, user, role } = useAuth();
+  const location = useLocation();
 
-  // 1. Si aún está cargando el usuario, no mostramos nada
-  if (isLoading) {
-    return <div>Cargando...</div>; // O un spinner
+  // 🔎 Diagnóstico (míralo en la consola)
+  console.log("[AdminGuard]", { status, isLoading, isAuthenticated, role, user });
+
+  // Mientras valida el token y hace /auth/me, no decidas
+  if (isLoading || status === "checking") {
+    return <div className="p-6 text-white">Cargando sesión…</div>;
   }
 
-  // 2. Si cargó y el user_type NO es 'admin', lo sacamos al Home
-  if (user?.user_type !== "admin") {
+  // Si no hay sesión: a login
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
+  // Fallback temporal: permite admin por correo (para test)
+  const emailIsAdmin = user?.email?.toLowerCase() === "mint@gmail.com";
+
+  // Si hay sesión pero no es admin: a Home
+  if (!isAdmin && !emailIsAdmin) {
     return <Navigate to="/" replace />;
   }
 
-  // 3. Si es 'admin', le permitimos ver la página (el <Outlet />)
   return <Outlet />;
 }

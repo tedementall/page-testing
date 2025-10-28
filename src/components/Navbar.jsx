@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { HashLink } from "react-router-hash-link";
 import { useCart } from "../context/CartContext";
@@ -23,24 +23,28 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
   const { totalItems } = useCart();
-  const { isAuthenticated, user, logout, isLoading: authLoading } = useAuth();
+  const { user, isAdmin, isLoading: authLoading, logout, isAuthenticated } = useAuth();
 
   const toggleMenu = () => setMenuOpen((p) => !p);
   const closeMenu = () => setMenuOpen(false);
-
-  const smoothScroll = (el) => {
-    el.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  };
+  const displayName = user?.name || user?.email || user?.username || "Tu cuenta";
+  const smoothScroll = (el) => el.scrollIntoView({ behavior: "smooth", block: "start" });
 
   const handleLogout = useCallback(() => {
     setMenuOpen(false);
     logout();
   }, [logout]);
 
-  const displayName = user?.name || user?.email || user?.username || "Tu cuenta";
+  // fallback temporal por si llega distinto el rol
+  const adminFlag = useMemo(() => {
+    return (
+      isAdmin ||
+      (user?.user_type && String(user.user_type).toLowerCase() === "admin") ||
+      (user?.role && String(user.role).toLowerCase() === "admin") ||
+      (user?.type && String(user.type).toLowerCase() === "admin") ||
+      (user?.email && user.email.toLowerCase() === "mint@gmail.com")
+    );
+  }, [isAdmin, user]);
 
   return (
     <header className="site-header">
@@ -98,23 +102,22 @@ export default function Navbar() {
             >
               <i className="fas fa-shopping-cart"></i>
               <span className="d-none d-lg-inline">Carrito</span>
-              {totalItems > 0 ? (
+              {totalItems > 0 && (
                 <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill cart-badge">
                   {totalItems}
                 </span>
-              ) : null}
+              )}
             </button>
 
             {isAuthenticated ? (
               <div className="d-flex align-items-center gap-2">
-                {user?.user_type === "admin" ? (
-                  <Link to="/admin" className="btn btn-outline-primary" onClick={closeMenu}>
+                {adminFlag ? (
+                  <Link to="/admin/dashboard" className="btn btn-outline-primary" onClick={closeMenu}>
                     Dashboard
                   </Link>
                 ) : (
                   <span className="text-nowrap small fw-semibold d-none d-lg-inline">{displayName}</span>
                 )}
-
                 <button
                   type="button"
                   className="btn btn-outline-secondary"
@@ -125,7 +128,12 @@ export default function Navbar() {
                 </button>
               </div>
             ) : (
-              <Link to="/login" className="btn__text" state={{ from: location.pathname }} onClick={closeMenu}>
+              <Link
+                to="/login"
+                className="btn__text"
+                state={{ from: location }}
+                onClick={closeMenu}
+              >
                 Acceder
               </Link>
             )}

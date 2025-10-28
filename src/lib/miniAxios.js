@@ -1,50 +1,78 @@
+// src/lib/miniAxios.js
+
+/* =========================
+ * URL builder + params
+ * ========================= */
 function buildURL(baseURL = "", url = "", params) {
   let target;
-  
-  // Si baseURL es una ruta relativa (empieza con /)
-  if (baseURL && baseURL.startsWith('/')) {
-    const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost";
-    target = new URL((baseURL + (url || "")).replace(/\/+/g, '/'), origin);
-  } 
-  // Si baseURL es una URL completa
-  else if (baseURL && /^https?:/i.test(baseURL)) {
+
+  if (baseURL && baseURL.startsWith("/")) {
+    const origin =
+      typeof window !== "undefined" ? window.location.origin : "http://localhost";
+    target = new URL((baseURL + (url || "")).replace(/\/+/g, "/"), origin);
+  } else if (baseURL && /^https?:/i.test(baseURL)) {
     target = new URL(url || "", baseURL);
-  } 
-  // Si url es una URL completa
-  else if (/^https?:/i.test(url)) {
+  } else if (/^https?:/i.test(url)) {
     target = new URL(url);
-  } 
-  // Fallback
-  else {
-    const fallbackBase = typeof window !== "undefined" ? window.location.origin : "http://localhost";
+  } else {
+    const fallbackBase =
+      typeof window !== "undefined" ? window.location.origin : "http://localhost";
     target = new URL(url || "", fallbackBase);
   }
 
   if (params && typeof params === "object") {
     Object.entries(params)
-      .filter(([, value]) => value !== undefined && value !== null && value !== "")
-      .forEach(([key, value]) => {
-        if (Array.isArray(value)) {
-          value.forEach((entry) => target.searchParams.append(key, entry));
-        } else {
-          target.searchParams.set(key, value);
-        }
+      .filter(([, v]) => v !== undefined && v !== null && v !== "")
+      .forEach(([k, v]) => {
+        if (Array.isArray(v)) v.forEach((x) => target.searchParams.append(k, x));
+        else target.searchParams.set(k, v);
       });
   }
 
   return target.toString();
 }
 
+/* =========================
+ * Auth token (Bearer)
+ * ========================= */
+const TOKEN_KEY = "token";
+let _token =
+  (typeof localStorage !== "undefined" && localStorage.getItem(TOKEN_KEY)) || null;
+
+function setToken(t) {
+  _token = t || null;
+  if (typeof localStorage !== "undefined") {
+    if (_token) localStorage.setItem(TOKEN_KEY, _token);
+    else localStorage.removeItem(TOKEN_KEY);
+  }
+}
+function getToken() {
+  return _token;
+}
+function clearToken() {
+  setToken(null);
+}
+
+/* =========================
+ * Headers helper
+ * ========================= */
 function ensureHeaders(headers) {
   const result = new Headers();
+  // Bearer por defecto si existe token y no fue seteado manualmente
+  if (_token && !headers?.Authorization && !headers?.authorization) {
+    result.set("Authorization", `Bearer ${_token}`);
+  }
   if (!headers) return result;
   Object.entries(headers).forEach(([key, value]) => {
-    if (typeof value === "undefined") return;
+    if (typeof value === "undefined" || value === null) return;
     result.set(key, value);
   });
   return result;
 }
 
+/* =========================
+ * mini Axios
+ * ========================= */
 function createAxiosInstance(defaultConfig = {}) {
   const requestInterceptors = [];
   const responseInterceptors = [];
@@ -75,25 +103,27 @@ function createAxiosInstance(defaultConfig = {}) {
         ...config,
       };
 
+      // request interceptors
       for (const { onFulfilled, onRejected } of requestInterceptors) {
         if (!onFulfilled) continue;
         try {
           requestConfig = await onFulfilled(requestConfig);
-        } catch (error) {
-          if (onRejected) {
-            requestConfig = await onRejected(error);
-          } else {
-            throw error;
-          }
+        } catch (err) {
+          if (onRejected) requestConfig = await onRejected(err);
+          else throw err;
         }
       }
 
-      const { baseURL = instance.defaults.baseURL ?? "", params, data, body } = requestConfig;
+      const { baseURL = instance.defaults.baseURL ?? "", params, data, body } =
+        requestConfig;
+
       const url = buildURL(baseURL, requestConfig.url ?? "", params);
       const method = (requestConfig.method || "get").toUpperCase();
       const headers = ensureHeaders(requestConfig.headers);
+
       let payload = body ?? data;
 
+      // si es objeto normal -> JSON; si es FormData, no tocar headers
       if (payload && typeof payload === "object" && !(payload instanceof FormData)) {
         if (!headers.has("Content-Type")) {
           headers.set("Content-Type", "application/json");
@@ -121,7 +151,10 @@ function createAxiosInstance(defaultConfig = {}) {
         } catch {
           responseData = null;
         }
-      } else if (contentType.includes("application/octet-stream") || contentType.includes("image/")) {
+      } else if (
+        contentType.includes("application/octet-stream") ||
+        contentType.includes("image/")
+      ) {
         responseData = await response.blob();
       } else if (contentType.includes("text/")) {
         responseData = await response.text();
@@ -143,7 +176,9 @@ function createAxiosInstance(defaultConfig = {}) {
       };
 
       if (!response.ok) {
-        const axiosError = new Error(`Request failed with status code ${response.status}`);
+        const axiosError = new Error(
+          `Request failed with status code ${response.status}`
+        );
         axiosError.response = axiosResponse;
         axiosError.config = requestConfig;
         axiosError.isAxiosError = true;
@@ -157,10 +192,10 @@ function createAxiosInstance(defaultConfig = {}) {
             throw error;
           }
         }
-
         throw axiosError;
       }
 
+      // response interceptors
       for (const { onFulfilled } of responseInterceptors) {
         if (onFulfilled) {
           axiosResponse = await onFulfilled(axiosResponse);
@@ -190,9 +225,22 @@ function createAxiosInstance(defaultConfig = {}) {
   return instance;
 }
 
+/* =========================
+ * Export: instancia lista
+ * ========================= */
+const DEFAULT_BASE =
+  (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_BASE) || "";
+
+const api = createAxiosInstance({ baseURL: DEFAULT_BASE });
+
+// helpers de token disponibles desde la instancia
+api.setToken = setToken;
+api.getToken = getToken;
+api.clearToken = clearToken;
+
 const axios = {
   create: (config) => createAxiosInstance(config),
 };
 
-export default axios;
-export { createAxiosInstance };
+export default api; // uso: import api from "../lib/miniAxios";
+export { createAxiosInstance, axios, buildURL, setToken, getToken, clearToken };
