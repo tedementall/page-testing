@@ -1,6 +1,3 @@
-/* =========================================================
-= 0) Fuentes, Variables, Reset
-========================================================= */
 @font-face {
   font-family: "Google Sans";
   src: url("/TheHub/fonts/GoogleSans-Regular.ttf") format("truetype");
@@ -14,7 +11,7 @@
   --color_text-tertiary: #485663;
 
   --main_color-primary: #9a00bf;
-  --main_color-secundary: #f4d4fb;
+  --main_color-secundary: #070208;
 
   --background-color: #fafbfe;
 

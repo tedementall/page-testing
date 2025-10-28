@@ -1,16 +1,13 @@
-// vite.config.js
 import path from "node:path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 const XANO_HOST = "https://x8ki-letl-twmt.n7.xano.io";
 
-// ⚙️ Grupo del LOGIN (auth)
-// Este es el grupo donde están los endpoints /auth/login y /auth/me
+// endpoints de autenticación
 const AUTH_GROUP_ID = "MJq6ok-f";
 
-// ⚙️ Grupo del catálogo, carrito, etc.
-// Este es el grupo que devuelve los 6 productos (ya funcionando)
+// grupo del carrito y productos
 const CORE_GROUP_ID = "Ekf2eplz";
 
 export default defineConfig({
@@ -23,7 +20,7 @@ export default defineConfig({
   server: {
     open: "/",
     proxy: {
-      // 🔐 Autenticación
+      // Autenticación
       "/xano-auth": {
         target: `${XANO_HOST}/api:${AUTH_GROUP_ID}`,
         changeOrigin: true,
@@ -40,7 +37,7 @@ export default defineConfig({
         },
       },
 
-      // 🛒 Core (productos, carrito)
+      //  Core (productos, carrito)
       "/xano-core": {
         target: `${XANO_HOST}/api:${CORE_GROUP_ID}`,
         changeOrigin: true,

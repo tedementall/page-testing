@@ -1,8 +1,6 @@
-// src/admin/Dashboard.jsx
-
 import { motion } from 'framer-motion';
 
-// Definimos las animaciones de 'fade'
+
 const pageVariants = {
   initial: { opacity: 0 },
   in: { opacity: 1 },
@@ -24,8 +22,7 @@ export default function Dashboard() {
       variants={pageVariants}
       transition={pageTransition}
     >
-      {/* Esto es lo ÚNICO que debe estar en este archivo.
-          No debe haber ningún <Header /> o <img> aquí. */}
+      
       <h1>¡Hola, Administrador!</h1>
       <p className="lead">Bienvenido al panel de gestión de The Hub.</p>
       
