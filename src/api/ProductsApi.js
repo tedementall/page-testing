@@ -172,6 +172,60 @@ export async function createProductWithImages(payload, files) {
 }
 
 /* ============================
+ * Actualizar producto
+ * ============================ */
+export async function updateProduct(productId, payload) {
+  if (!productId) throw new Error("Falta productId");
+  
+  const body = {};
+  
+  // Solo incluir campos que se enviaron
+  if (payload.name !== undefined) body.name = norm(payload.name);
+  if (payload.description !== undefined) body.description = norm(payload.description);
+  if (payload.price !== undefined) body.price = Number(payload.price) || 0;
+  if (payload.stock_quantity !== undefined) body.stock_quantity = Number(payload.stock_quantity);
+  if (payload.stock !== undefined) body.stock_quantity = Number(payload.stock);
+  if (payload.category !== undefined) body.category = normLower(payload.category);
+  if (payload.brand !== undefined) body.brand = norm(payload.brand);
+  if (payload.image_url !== undefined) body.image_url = payload.image_url;
+  
+  try {
+    const res = await httpCore.patch(`${ENDPOINT}/${productId}`, body);
+    console.log("[ProductsApi] updateProduct success:", res?.data);
+    return normalizeProduct(res?.data);
+  } catch (error) {
+    console.error("[ProductsApi] updateProduct error:", error);
+    throw error;
+  }
+}
+
+/* ============================
+ * Actualizar + subir nuevas imágenes
+ * ============================ */
+export async function updateProductWithImages(productId, payload, files) {
+  // 1. Actualizar datos básicos
+  const updated = await updateProduct(productId, payload);
+  
+  // 2. Si hay archivos nuevos, subirlos
+  if (files && files.length > 0) {
+    const uploaded = await uploadImages(files);
+    
+    // 3. Combinar con imágenes existentes (si quieres mantenerlas)
+    const existingImages = payload.keepExistingImages 
+      ? (updated.image_url || [])
+      : [];
+    
+    const allImages = [...existingImages, ...uploaded];
+    
+    // 4. Actualizar las imágenes
+    const final = await patchProductImages(productId, allImages);
+    return final;
+  }
+  
+  return updated;
+}
+
+/* ============================
  * Borrar producto
  * ============================ */
 export async function deleteProduct(productId) {
