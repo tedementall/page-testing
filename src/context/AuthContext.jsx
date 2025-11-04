@@ -1,10 +1,11 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as AuthApi from "../api/authApi";
 import { getToken, onUnauthorized } from "../api/http";
 
 const AuthContext = createContext(null);
 
+/* ------------------------- helpers ------------------------- */
 function extractErrorMessage(error, fallback) {
   if (!error) return fallback;
   const res = error?.response?.data;
@@ -24,32 +25,35 @@ function extractErrorMessage(error, fallback) {
 }
 
 const initialStatus = (() => {
-  try {
-    return getToken() ? "checking" : "unauthenticated";
-  } catch {
-    return "unauthenticated";
-  }
+  try { return getToken() ? "checking" : "unauthenticated"; }
+  catch { return "unauthenticated"; }
 })();
 
+/* ========================= Provider ========================= */
 export function AuthProvider({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
 
   const [user, setUser] = useState(null);
-  const [status, setStatus] = useState(initialStatus);
+  const [status, setStatus] = useState(initialStatus); // checking | authenticated | unauthenticated
   const [isLoading, setIsLoading] = useState(initialStatus === "checking");
   const [authError, setAuthError] = useState(null);
+  const [lastErrorCode, setLastErrorCode] = useState(null);
+
+  // evita múltiples /me concurrentes
+  const meInFlight = useRef(null);
 
   const applyLogout = useCallback(() => {
-    AuthApi.logout?.(); // no falla si no existe
+    try { AuthApi.logout?.(); } catch {}
     setUser(null);
     setStatus("unauthenticated");
     setIsLoading(false);
   }, []);
 
-  // 401 global → logout + redirección
+  // 401 global -> logout. (No tocamos 429 aquí)
   useEffect(() => {
-    const unsubscribe = onUnauthorized(() => {
+    const unsubscribe = onUnauthorized((code) => {
+      if (code !== 401) return; // solo 401 aquí
       setAuthError("Tu sesión expiró. Inicia sesión nuevamente.");
       applyLogout();
       navigate("/login", { replace: true, state: { from: location.pathname } });
@@ -57,97 +61,113 @@ export function AuthProvider({ children }) {
     return unsubscribe;
   }, [applyLogout, location.pathname, navigate]);
 
-  // Cargar sesión si hay token
+  // === Cargar /me con single-flight y manejo de 429 ===
+  const loadMe = useCallback(async () => {
+    if (meInFlight.current) return meInFlight.current;
+
+    meInFlight.current = (async () => {
+      const token = getToken();
+      if (!token) {
+        setUser(null);
+        setStatus("unauthenticated");
+        setLastErrorCode(null);
+        return null;
+      }
+
+      try {
+        const profile = await AuthApi.me();
+        setUser(profile);
+        setStatus("authenticated");
+        setAuthError(null);
+        setLastErrorCode(null);
+        return profile;
+      } catch (error) {
+        const code = error?.response?.status || null;
+        setLastErrorCode(code);
+
+        if (code === 429) {
+          // 🔸 No tumbes sesión por rate limit; mantenemos authenticated si hay token.
+          setStatus("authenticated");
+          return user; // conserva el user previo si lo había
+        }
+
+        // Otros errores (403/401/5xx) -> desautentica
+        const message = extractErrorMessage(error, "Tu sesión expiró. Inicia sesión nuevamente.");
+        setAuthError(message);
+        applyLogout();
+        if (code === 401) {
+          navigate("/login", { replace: true, state: { from: location.pathname } });
+        }
+        return null;
+      } finally {
+        meInFlight.current = null;
+        setIsLoading(false);
+      }
+    })();
+
+    return meInFlight.current;
+  }, [applyLogout, location.pathname, navigate, user]);
+
+  // Cargar sesión si hay token (evita intentarlo en /login)
   useEffect(() => {
-    let cancelled = false;
     const token = getToken();
 
-    // Permite ver /login sin intentar /me
     if (location.pathname === "/login") {
       setStatus("unauthenticated");
       setIsLoading(false);
       return;
     }
-
     if (!token) {
       setStatus("unauthenticated");
       setIsLoading(false);
-      return () => { cancelled = true; };
+      return;
     }
 
     setIsLoading(true);
     setStatus("checking");
+    loadMe();
+  }, [location.pathname, loadMe]);
 
-    AuthApi.me()
-      .then((profile) => {
-        if (cancelled) return;
-        setUser(profile);
-        setStatus("authenticated");
-        setAuthError(null);
-      })
-      .catch((error) => {
-        if (cancelled) return;
-        const message = extractErrorMessage(error, "Tu sesión expiró. Inicia sesión nuevamente.");
-        setAuthError(message);
-        applyLogout();
-        if (error?.response?.status === 401) {
-          navigate("/login", { replace: true, state: { from: location.pathname } });
-        }
-      })
-      .finally(() => { if (!cancelled) setIsLoading(false); });
+  // === login/signup/logout ===
+  const login = useCallback(async (credentialsOrEmail, maybePassword) => {
+    setIsLoading(true);
+    setStatus("checking");
+    setAuthError(null);
+    try {
+      const creds = typeof credentialsOrEmail === "object"
+        ? credentialsOrEmail
+        : { email: credentialsOrEmail, password: maybePassword };
 
-    return () => { cancelled = true; };
-  }, [applyLogout, location.pathname, navigate]);
+      await AuthApi.login(creds); // guarda token
+      const profile = await loadMe(); // usa single-flight
+      return profile;
+    } catch (error) {
+      const message = extractErrorMessage(error, "No pudimos iniciar sesión. Verifica tus credenciales.");
+      setAuthError(message);
+      applyLogout();
+      throw new Error(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [applyLogout, loadMe]);
 
-  const login = useCallback(
-    async (credentialsOrEmail, maybePassword) => {
-      setIsLoading(true);
-      setStatus("checking");
-      setAuthError(null);
-      try {
-        const creds = typeof credentialsOrEmail === "object"
-          ? credentialsOrEmail
-          : { email: credentialsOrEmail, password: maybePassword };
-
-        await AuthApi.login(creds);     // debe guardar token en http/miniAxios
-        const profile = await AuthApi.me();
-        setUser(profile);
-        setStatus("authenticated");
-        return profile;
-      } catch (error) {
-        const message = extractErrorMessage(error, "No pudimos iniciar sesión. Verifica tus credenciales.");
-        setAuthError(message);
-        applyLogout();
-        throw new Error(message);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [applyLogout]
-  );
-
-  const signup = useCallback(
-    async (payload) => {
-      setIsLoading(true);
-      setStatus("checking");
-      setAuthError(null);
-      try {
-        await AuthApi.signup(payload);
-        const profile = await AuthApi.me();
-        setUser(profile);
-        setStatus("authenticated");
-        return profile;
-      } catch (error) {
-        const message = extractErrorMessage(error, "No pudimos crear tu cuenta. Inténtalo nuevamente.");
-        setAuthError(message);
-        applyLogout();
-        throw new Error(message);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [applyLogout]
-  );
+  const signup = useCallback(async (payload) => {
+    setIsLoading(true);
+    setStatus("checking");
+    setAuthError(null);
+    try {
+      await AuthApi.signup(payload);
+      const profile = await loadMe();
+      return profile;
+    } catch (error) {
+      const message = extractErrorMessage(error, "No pudimos crear tu cuenta. Inténtalo nuevamente.");
+      setAuthError(message);
+      applyLogout();
+      throw new Error(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [applyLogout, loadMe]);
 
   const logout = useCallback(() => {
     setAuthError(null);
@@ -155,29 +175,27 @@ export function AuthProvider({ children }) {
     navigate("/login", { replace: true });
   }, [applyLogout, navigate]);
 
-  // === Rol normalizado + flag admin ===
+  // Rol + flag admin
   const role = useMemo(() => {
     const r = user?.user_type ?? user?.role ?? user?.type ?? "";
     return String(r || "").toLowerCase();
   }, [user]);
-
   const isAdmin = role === "admin";
 
-  const value = useMemo(
-    () => ({
-      user,
-      role,
-      isAdmin,
-      status,
-      isAuthenticated: status === "authenticated",
-      isLoading,
-      error: authError,
-      login,
-      signup,
-      logout,
-    }),
-    [authError, isAdmin, isLoading, login, logout, signup, status, user, role]
-  );
+  const value = useMemo(() => ({
+    user,
+    role,
+    isAdmin,
+    status,
+    isAuthenticated: status === "authenticated",
+    isLoading,
+    error: authError,
+    lastErrorCode,               // ⬅️ útil para el guard
+    login,
+    signup,
+    logout,
+    refetchMe: loadMe,           // ⬅️ por si necesitas forzar
+  }), [authError, isAdmin, isLoading, lastErrorCode, loadMe, logout, signup, status, user, role]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -207,3 +207,32 @@ body {
    Helpers
    ========================= */
 .text-muted-soft { color: rgba(255,255,255,.70) !important; }
+
+/* --- SELECT legible en el dropdown --- */
+.form-select {
+  color-scheme: light; /* Fuerza popup claro en navegadores WebKit/Blink */
+}
+
+/* Fuerza color/fondo de las opciones (Chromium/Firefox) */
+.form-select option,
+.form-select optgroup {
+  color: #111 !important;
+  background-color: #fff !important;
+}
+
+/* Hover/selección dentro del popup */
+.form-select option:hover,
+.form-select option:checked {
+  background-color: #eaf1ff !important;
+  color: #000 !important;
+}
+
+/* Mantén tu estilo “glass” para el control cerrado */
+.form-select,
+.form-control {
+  background: rgba(255,255,255,.08) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,.22) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}

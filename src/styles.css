@@ -504,6 +504,138 @@ body {
 .btn__text:hover { background: transparent; border: 2px solid var(--main_color-primary); color: var(--main_color-primary); }
 
 /* =========================================================
+= CSS PARALLAX - HALO MULTICOLOR CON ROTACIÓN ANIMADA 🌈✨
+= Los colores rotan lentamente para efecto hipnótico
+========================================================= */
+
+/* Contenedor de imagen */
+.image__cover {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 500px;
+  perspective: 1200px;
+  overflow: visible;
+}
+
+/* Halo con gradiente que ROTA */
+.hero-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  
+  /* 👇 GRADIENTE CÓNICO que puede rotar */
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    rgba(255, 80, 150, 0.5) 0deg,      /* Rosa */
+    rgba(220, 100, 255, 0.5) 60deg,    /* Morado */
+    rgba(255, 120, 180, 0.5) 120deg,   /* Rosa claro */
+    rgba(180, 80, 255, 0.5) 180deg,    /* Morado brillante */
+    rgba(255, 100, 150, 0.5) 240deg,   /* Rosa coral */
+    rgba(200, 100, 250, 0.5) 300deg,   /* Morado medio */
+    rgba(255, 80, 150, 0.5) 360deg     /* Rosa (cierra el círculo) */
+  );
+  
+  filter: blur(100px);  /* Blur alto para suavizar */
+  
+  transition: 
+    transform 0.3s cubic-bezier(0.23, 1, 0.32, 1),
+    opacity 2s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 1.5s cubic-bezier(0.4, 0, 0.2, 1),
+    scale 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  pointer-events: none;
+  z-index: 1;
+  will-change: transform, opacity;
+  
+  opacity: 0;
+  scale: 0.9;
+  
+  /* 👇 ANIMACIÓN DE ROTACIÓN LENTA */
+  animation: rotateGlow 20s linear infinite;
+}
+
+/* Animación de rotación suave */
+@keyframes rotateGlow {
+  from {
+    rotate: 0deg;
+  }
+  to {
+    rotate: 360deg;
+  }
+}
+
+/* Imagen del teléfono */
+.hero-phone {
+  position: relative;
+  z-index: 2;
+  max-width: 100%;
+  height: auto;
+  transition: 
+    transform 0.3s cubic-bezier(0.23, 1, 0.32, 1),
+    filter 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+  filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.2));
+  transform-style: preserve-3d;
+  cursor: pointer;
+}
+
+/* Aparecer y pausar rotación brevemente */
+.image__cover:hover .hero-glow {
+  opacity: 1;
+  filter: blur(110px);
+  scale: 1.05;
+  animation-play-state: paused;  /* Pausa la rotación al hacer hover */
+}
+
+.image__cover:hover .hero-phone {
+  filter: drop-shadow(0 25px 50px rgba(180, 80, 255, 0.4));
+}
+
+/* Animación de entrada */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-phone {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .hero-glow {
+    width: 400px;
+    height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .image__cover {
+    min-height: 400px;
+  }
+  
+  .hero-glow {
+    width: 300px;
+    height: 300px;
+    filter: blur(70px);
+    /* Rotación más rápida en móviles */
+    animation: rotateGlow 15s linear infinite;
+  }
+}
+
+/* =========================================================
 = 3) Trust (confianza)
 ========================================================= */
 .container__trust { padding: 100px 0; }

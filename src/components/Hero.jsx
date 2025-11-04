@@ -22,7 +22,7 @@ export default function Hero() {
               {/* Halo/Glow con efecto parallax */}
               <div className="hero-glow"></div>
 
-              {/* Imagen del teléfono */}
+              {/* 👇 AQUÍ está tu imagen con la ruta correcta */}
               <img
                 src="/TheHub/images/cover/hero-img.png"
                 alt="Smartphone con accesorios tech"

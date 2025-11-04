@@ -1,4 +1,3 @@
-// src/admin/ProductsAdmin.jsx
 import { useEffect, useMemo, useState } from "react";
 import { fetchProducts, deleteProduct } from "../api/ProductsApi";
 
@@ -12,10 +11,10 @@ export default function ProductsAdmin() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
-  // UI state
+  
   const [q, setQ] = useState("");
   const [category, setCategory] = useState("todas");
-  const [sort, setSort] = useState("newest"); // newest | price_asc | price_desc
+  const [sort, setSort] = useState("newest");
   const [deletingId, setDeletingId] = useState(null);
 
   async function loadProducts() {
@@ -23,7 +22,7 @@ export default function ProductsAdmin() {
     setErr("");
     try {
       const data = await fetchProducts({ page: 1, limit: 100 });
-      // fetchProducts devuelve { items, total, ... }
+      
       const list = Array.isArray(data?.items) ? data.items : [];
       setItems(list);
     } catch (e) {
@@ -82,7 +81,7 @@ export default function ProductsAdmin() {
           e?.response?.data?.message || e?.message || "Error desconocido"
         }`
       );
-      setItems(prev); // revert
+      setItems(prev); 
     } finally {
       setDeletingId(null);
     }
@@ -195,7 +194,7 @@ export default function ProductsAdmin() {
                 <td>{p.created_at ? new Date(p.created_at).toLocaleDateString("es-CL") : "—"}</td>
                 <td className="text-end">
                   <div className="btn-group">
-                    {/* Botón borrar */}
+                    
                     <button
                       className="btn btn-outline-danger btn-sm"
                       onClick={() => handleDelete(p)}
