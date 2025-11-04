@@ -1,4 +1,3 @@
-// src/admin/UsersAdmin.jsx
 import { useEffect, useMemo, useState } from "react";
 import { fetchUsers, deleteUser, toggleActive, updateRole, updateUser } from "../api/UsersApi";
 
@@ -10,11 +9,11 @@ export default function UsersAdmin() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
-  // filtros UI
+  
   const [q, setQ] = useState("");
-  const [role, setRole] = useState("todos");   // todos | admin | cliente
-  const [active, setActive] = useState("todos"); // todos | activos | inactivos
-  const [sort, setSort] = useState("newest");  // newest | name | email
+  const [role, setRole] = useState("todos");   
+  const [active, setActive] = useState("todos");
+  const [sort, setSort] = useState("newest");  
   const [workingId, setWorkingId] = useState(null);
 
   async function load() {

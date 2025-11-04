@@ -42,6 +42,13 @@ export function AuthProvider({ children }) {
 
   // evita múltiples /me concurrentes
   const meInFlight = useRef(null);
+  
+  // 🔧 Cache del user para evitar dependencias circulares
+  const userRef = useRef(null);
+  
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
   const applyLogout = useCallback(() => {
     try { AuthApi.logout?.(); } catch {}
@@ -63,11 +70,15 @@ export function AuthProvider({ children }) {
 
   // === Cargar /me con single-flight y manejo de 429 ===
   const loadMe = useCallback(async () => {
-    if (meInFlight.current) return meInFlight.current;
+    if (meInFlight.current) {
+      console.log("[AuthContext] Ya hay una petición /me en curso, esperando...");
+      return meInFlight.current;
+    }
 
     meInFlight.current = (async () => {
       const token = getToken();
       if (!token) {
+        console.log("[AuthContext] No hay token, status -> unauthenticated");
         setUser(null);
         setStatus("unauthenticated");
         setLastErrorCode(null);
@@ -75,7 +86,9 @@ export function AuthProvider({ children }) {
       }
 
       try {
+        console.log("[AuthContext] Cargando perfil desde /me...");
         const profile = await AuthApi.me();
+        console.log("[AuthContext] ✅ Perfil cargado:", profile);
         setUser(profile);
         setStatus("authenticated");
         setAuthError(null);
@@ -83,12 +96,14 @@ export function AuthProvider({ children }) {
         return profile;
       } catch (error) {
         const code = error?.response?.status || null;
+        console.error("[AuthContext] Error en /me:", { code, error });
         setLastErrorCode(code);
 
         if (code === 429) {
           // 🔸 No tumbes sesión por rate limit; mantenemos authenticated si hay token.
+          console.warn("[AuthContext] ⚠️ Error 429 (rate limit) - manteniendo sesión con user previo");
           setStatus("authenticated");
-          return user; // conserva el user previo si lo había
+          return userRef.current; // usa el ref en lugar de la dependencia
         }
 
         // Otros errores (403/401/5xx) -> desautentica
@@ -106,27 +121,32 @@ export function AuthProvider({ children }) {
     })();
 
     return meInFlight.current;
-  }, [applyLogout, location.pathname, navigate, user]);
+  }, [applyLogout, navigate]); // 🔧 Removido: location.pathname y user
 
   // Cargar sesión si hay token (evita intentarlo en /login)
   useEffect(() => {
     const token = getToken();
 
+    console.log("[AuthContext] useEffect disparado - pathname:", location.pathname);
+
     if (location.pathname === "/login") {
+      console.log("[AuthContext] En /login, no cargar perfil");
       setStatus("unauthenticated");
       setIsLoading(false);
       return;
     }
     if (!token) {
+      console.log("[AuthContext] Sin token, status -> unauthenticated");
       setStatus("unauthenticated");
       setIsLoading(false);
       return;
     }
 
+    console.log("[AuthContext] Hay token, iniciando carga...");
     setIsLoading(true);
     setStatus("checking");
     loadMe();
-  }, [location.pathname, loadMe]);
+  }, [location.pathname, loadMe]); // 🔧 Ahora es seguro incluir loadMe porque no depende de user
 
   // === login/signup/logout ===
   const login = useCallback(async (credentialsOrEmail, maybePassword) => {
@@ -195,7 +215,7 @@ export function AuthProvider({ children }) {
     signup,
     logout,
     refetchMe: loadMe,           // ⬅️ por si necesitas forzar
-  }), [authError, isAdmin, isLoading, lastErrorCode, loadMe, logout, signup, status, user, role]);
+  }), [authError, isAdmin, isLoading, lastErrorCode, loadMe, login, logout, signup, status, user, role]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
