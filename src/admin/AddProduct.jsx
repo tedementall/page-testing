@@ -1,37 +1,65 @@
-import { useState } from "react";
-import { createProductWithImages } from "../api/ProductsApi";
+// src/admin/AddProduct.jsx
+import { useEffect, useMemo, useState } from "react";
+import { createProductWithImages, fetchProducts } from "../api/ProductsApi";
 import { useNavigate } from "react-router-dom";
 
 function normalizeCategory(v) {
-  return String(v || "")
-    .normalize("NFKC")
-    .trim()
-    .toLowerCase();
+  return String(v || "").normalize("NFKC").trim().toLowerCase();
 }
 
 export default function AddProduct() {
   const nav = useNavigate();
+
+  // --- Form ---
   const [form, setForm] = useState({
     name: "",
     description: "",
     price: 0,
-    stock: 0, 
+    stock: 0,
     brand: "",
-    category: "",
+    category: "",          // categoría seleccionada del select
+    category_custom: "",   // texto cuando eligen "Otra…"
   });
+
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("");
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
 
-  
+  // --- Cargar categorías existentes desde productos ---
+  const [items, setItems] = useState([]);
+  const [catLoading, setCatLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        setCatLoading(true);
+        const data = await fetchProducts({ page: 1, limit: 200 });
+        setItems(Array.isArray(data?.items) ? data.items : []);
+      } catch (e) {
+        console.error("[AddProduct] load categories error:", e?.response?.data || e);
+      } finally {
+        setCatLoading(false);
+      }
+    })();
+  }, []);
+
+  const categories = useMemo(() => {
+    const set = new Set(
+      items
+        .map((p) => normalizeCategory(p?.category))
+        .filter(Boolean)
+    );
+    return Array.from(set).sort();
+  }, [items]);
+
+  const isOther = form.category === "__other__";
+
   const onChange = (e) => {
     const { name, value } = e.target;
-    setForm((p) => ({
-      ...p,
-      [name]: name === "category" ? normalizeCategory(value) : value,
-    }));
+    // Solo normalizamos category_custom al enviar, para que el placeholder se vea tal cual
+    setForm((p) => ({ ...p, [name]: value }));
   };
 
   const onFiles = (e) => setFiles(e.target.files);
@@ -42,14 +70,17 @@ export default function AddProduct() {
     setResult(null);
     setStatus("Procesando…");
 
-   
+    const finalCategory = isOther
+      ? normalizeCategory(form.category_custom)
+      : normalizeCategory(form.category);
+
     const payload = {
       name: (form.name || "").trim(),
       description: (form.description || "").trim(),
       price: Number(form.price) || 0,
-      stock_quantity: Number(form.stock) || 0, 
+      stock_quantity: Number(form.stock) || 0,
       brand: (form.brand || "").trim(),
-      category: normalizeCategory(form.category), 
+      category: finalCategory,
     };
 
     try {
@@ -58,7 +89,7 @@ export default function AddProduct() {
       setResult(res);
       setStatus("Producto creado ✅");
 
-      
+      // reset
       setForm({
         name: "",
         description: "",
@@ -66,16 +97,13 @@ export default function AddProduct() {
         stock: 0,
         brand: "",
         category: "",
+        category_custom: "",
       });
       e.target.reset();
       setFiles([]);
-
-      
     } catch (err) {
-      // Debug: muestra status y payload de Xano
       const status = err?.response?.status;
       const data = err?.response?.data;
-
       const msgFromServer =
         (typeof data === "string" && data) ||
         data?.message ||
@@ -162,15 +190,34 @@ export default function AddProduct() {
           />
         </div>
 
+        {/* Categoría: select + "Otra…" */}
         <div className="col-md-4">
           <label className="form-label">Categoría</label>
-          <input
-            className="form-control"
+          <select
+            className="form-select text-capitalize"
             name="category"
             value={form.category}
-            onChange={onChange} // ya normaliza a minúsculas
-            placeholder="cargador / carcasas / telefono / cables / audio"
-          />
+            onChange={onChange}
+            disabled={catLoading}
+            required
+          >
+            <option value="">Selecciona…</option>
+            {categories.map((c) => (
+              <option key={c} value={c} className="text-capitalize">
+                {c || "—"}
+              </option>
+            ))}
+            <option value="__other__">Otra…</option>
+          </select>
+          {isOther && (
+            <input
+              className="form-control mt-2"
+              name="category_custom"
+              value={form.category_custom}
+              onChange={onChange}
+              placeholder="Escribe una nueva categoría"
+            />
+          )}
           <small className="text-muted">
             Se normaliza a minúsculas para coincidir con Xano.
           </small>
@@ -205,7 +252,7 @@ export default function AddProduct() {
               className="bg-dark text-white p-3 rounded"
               style={{ maxHeight: 300, overflow: "auto" }}
             >
-{JSON.stringify(result, null, 2)}
+              {JSON.stringify(result, null, 2)}
             </pre>
           </div>
         )}
