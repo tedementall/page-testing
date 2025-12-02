@@ -5,7 +5,7 @@ import { signup } from "../api/authApi";
 import { REGIONES, COMUNAS_POR_REGION } from "../data/cl-geo";
 
 const pageVariants = {
-  initial: { opacity: 0, y: 20 }, // Un pequeño slide hacia arriba es más "Material"
+  initial: { opacity: 0, y: 20 },
   in: { opacity: 1, y: 0 },
   out: { opacity: 0, y: -20 },
 };
@@ -45,6 +45,11 @@ export default function Register() {
   };
 
   const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+
+  const passwordMismatch =
+    form.password.length >= 6 &&
+    form.confirm.length >= 6 &&
+    form.password !== form.confirm;
 
   const canSubmit =
     isEmail(form.email) &&
@@ -92,10 +97,13 @@ export default function Register() {
         <h2>Crea tu Cuenta</h2>
 
         <form onSubmit={onSubmit}>
+          
           <div className="form-group">
-            <label className="form-label" htmlFor="nombre">Nombre y Apellido</label>
+            <label className="form-label" htmlFor="nombre">
+              Nombre y Apellido
+            </label>
             <input
-              className="form-control" /* CLASE IMPORTANTE AGREGADA */
+              className="form-control"
               id="nombre"
               name="nombre"
               type="text"
@@ -106,8 +114,11 @@ export default function Register() {
             />
           </div>
 
+          
           <div className="form-group">
-            <label className="form-label" htmlFor="email">Correo Electrónico</label>
+            <label className="form-label" htmlFor="email">
+              Correo Electrónico
+            </label>
             <input
               className="form-control"
               id="email"
@@ -121,10 +132,12 @@ export default function Register() {
             />
           </div>
 
-          {/* GRID DE 2 COLUMNAS */}
+          
           <div className="grid-2">
             <div className="form-group">
-              <label className="form-label" htmlFor="password">Contraseña</label>
+              <label className="form-label" htmlFor="password">
+                Contraseña
+              </label>
               <input
                 className="form-control"
                 id="password"
@@ -140,9 +153,13 @@ export default function Register() {
             </div>
 
             <div className="form-group">
-              <label className="form-label" htmlFor="confirm">Confirmar</label>
+              <label className="form-label" htmlFor="confirm">
+                Confirmar
+              </label>
               <input
-                className="form-control"
+                className={`form-control ${
+                  passwordMismatch ? "input-error" : ""
+                }`}
                 id="confirm"
                 name="confirm"
                 type="password"
@@ -156,8 +173,16 @@ export default function Register() {
             </div>
           </div>
 
+          
+          {passwordMismatch && (
+            <p className="password-error">Las contraseñas no coinciden</p>
+          )}
+
+          {/* Dirección */}
           <div className="form-group">
-            <label className="form-label" htmlFor="direccion">Dirección</label>
+            <label className="form-label" htmlFor="direccion">
+              Dirección
+            </label>
             <input
               className="form-control"
               id="direccion"
@@ -170,9 +195,12 @@ export default function Register() {
             />
           </div>
 
+          
           <div className="grid-2">
             <div className="form-group">
-              <label className="form-label" htmlFor="region">Región</label>
+              <label className="form-label" htmlFor="region">
+                Región
+              </label>
               <select
                 className="form-control"
                 id="region"
@@ -183,13 +211,17 @@ export default function Register() {
               >
                 <option value="">Elegir...</option>
                 {REGIONES.map((r) => (
-                  <option key={r} value={r}>{r}</option>
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
                 ))}
               </select>
             </div>
 
             <div className="form-group">
-              <label className="form-label" htmlFor="comuna">Comuna</label>
+              <label className="form-label" htmlFor="comuna">
+                Comuna
+              </label>
               <select
                 className="form-control"
                 id="comuna"
@@ -203,14 +235,22 @@ export default function Register() {
                   {form.region ? "Elegir..." : "..."}
                 </option>
                 {comunas.map((c) => (
-                  <option key={c} value={c}>{c}</option>
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
                 ))}
               </select>
             </div>
           </div>
 
+          
           <div className="form-group">
-            <label className="form-label" htmlFor="telefono">Teléfono <span style={{fontWeight:'normal', fontSize:'0.8em'}}>(Opcional)</span></label>
+            <label className="form-label" htmlFor="telefono">
+              Teléfono{" "}
+              <span style={{ fontWeight: "normal", fontSize: "0.8em" }}>
+                (Opcional)
+              </span>
+            </label>
             <input
               className="form-control"
               id="telefono"
@@ -222,12 +262,14 @@ export default function Register() {
             />
           </div>
 
+          
           {err && <div className="auth-error">{err}</div>}
 
-          <button 
-            className="btn-registro" 
+          
+          <button
+            className="btn-registro"
             disabled={!canSubmit || loading}
-            style={{ opacity: !canSubmit || loading ? 0.7 : 1 }} // Feedback visual
+            style={{ opacity: !canSubmit || loading ? 0.7 : 1 }}
           >
             {loading ? "Creando cuenta..." : "Registrarme"}
           </button>

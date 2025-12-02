@@ -1,4 +1,5 @@
-import React from 'react';
+import React from "react";
+import { Link } from "react-router-dom";
 
 const FOOTER_LINKS = [
   {
@@ -6,25 +7,25 @@ const FOOTER_LINKS = [
     links: [
       { label: "Sobre nosotros", href: "#nosotros" },
       { label: "Equipo", href: "#equipo" },
-      { label: "Trabaja con nosotros", href: "#" }
-    ]
+      { label: "Trabaja con nosotros", href: "#" },
+    ],
   },
   {
     title: "Soporte",
     links: [
       { label: "Centro de ayuda", href: "#" },
       { label: "Seguimiento de pedidos", href: "#" },
-      { label: "Garantías", href: "#" }
-    ]
+      { label: "Garantías", href: "#" },
+    ],
   },
   {
     title: "Categorías",
     links: [
       { label: "Audio", href: "#productos" },
       { label: "Accesorios móviles", href: "#productos" },
-      { label: "Smart Home", href: "#productos" }
-    ]
-  }
+      { label: "Smart Home", href: "#productos" },
+    ],
+  },
 ];
 
 export default function Footer() {
@@ -32,30 +33,60 @@ export default function Footer() {
     <footer className="site-footer" id="contacto">
       <div className="container">
         <div className="row gy-4">
+          {/* Columna logo + descripción + redes */}
           <div className="col-12 col-lg-4 footer-column">
-            <img src="/TheHub/images/ic_thehub_logo.png" alt="The Hub" className="footer-logo" />
+            <img
+              src="/TheHub/images/ic_thehub_logo.png"
+              alt="The Hub"
+              className="footer-logo"
+            />
             <p>
-              Conectamos tu experiencia digital con productos cuidadosamente seleccionados y un
-              servicio cercano. ¡Hablemos y creemos algo increíble juntos!
+              Conectamos tu experiencia digital con productos cuidadosamente
+              seleccionados y un servicio cercano. ¡Hablemos y creemos algo
+              increíble juntos!
             </p>
             <div className="social-icons d-flex align-items-center">
-              <a href="https://www.facebook.com" target="_blank" rel="noreferrer" aria-label="Facebook">
+              <a
+                href="https://www.facebook.com"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Facebook"
+              >
                 <i className="fab fa-facebook-f"></i>
               </a>
-              <a href="https://www.instagram.com" target="_blank" rel="noreferrer" aria-label="Instagram">
+              <a
+                href="https://www.instagram.com"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Instagram"
+              >
                 <i className="fab fa-instagram"></i>
               </a>
-              <a href="https://twitter.com" target="_blank" rel="noreferrer" aria-label="Twitter">
+              <a
+                href="https://twitter.com"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Twitter"
+              >
                 <i className="fab fa-twitter"></i>
               </a>
-              <a href="https://www.youtube.com" target="_blank" rel="noreferrer" aria-label="YouTube">
+              <a
+                href="https://www.youtube.com"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="YouTube"
+              >
                 <i className="fab fa-youtube"></i>
               </a>
             </div>
           </div>
 
+          
           {FOOTER_LINKS.map((column) => (
-            <div key={column.title} className="col-12 col-sm-6 col-lg-2 footer-column">
+            <div
+              key={column.title}
+              className="col-12 col-sm-6 col-lg-2 footer-column"
+            >
               <h4>{column.title}</h4>
               <ul>
                 {column.links.map((link) => (
@@ -67,6 +98,7 @@ export default function Footer() {
             </div>
           ))}
 
+          
           <div className="col-12 col-lg-4 footer-column">
             <h4>Contáctenos</h4>
             <ul className="contact-list">
@@ -80,16 +112,30 @@ export default function Footer() {
               </li>
               <li>
                 <i className="fas fa-map-marker-alt"></i>
-                <a href="https://www.google.com/maps/place/Maip%C3%BA" target="_blank" rel="noreferrer">
+                <a
+                  href="https://www.google.com/maps/place/Maip%C3%BA"
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   Maipú, Santiago, Chile
                 </a>
               </li>
             </ul>
+
+            
+            <div className="mt-3">
+              <Link to="/contacto" className="footer-contact-btn">
+                Envíanos un mensaje!
+              </Link>
+            </div>
           </div>
         </div>
 
         <div className="footer-bottom mt-4 d-flex flex-column flex-md-row justify-content-between align-items-center">
-          <p className="mb-0">© {new Date().getFullYear()} The Hub. Todos los derechos reservados.</p>
+          <p className="mb-0">
+            © {new Date().getFullYear()} The Hub. Todos los derechos
+            reservados.
+          </p>
           <div>
             <a href="#">Política de privacidad</a>
             <span className="mx-2">|</span>
