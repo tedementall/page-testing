@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { HashLink } from "react-router-hash-link";
 import { useCart } from "../context/CartContext";
@@ -23,19 +23,15 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
   const { totalItems } = useCart();
-  const { user, isAdmin, isLoading: authLoading, logout, isAuthenticated } = useAuth();
+  const { user, isAdmin, isAuthenticated } = useAuth();
 
   const toggleMenu = () => setMenuOpen((p) => !p);
   const closeMenu = () => setMenuOpen(false);
+  
+  // Nombres muy largos pueden romper el layout, el CSS se encarga de ocultarlo en pantallas chicas ahora
   const displayName = user?.name || user?.email || user?.username || "Tu cuenta";
   const smoothScroll = (el) => el.scrollIntoView({ behavior: "smooth", block: "start" });
 
-  const handleLogout = useCallback(() => {
-    setMenuOpen(false);
-    logout();
-  }, [logout]);
-
-  
   const adminFlag = useMemo(() => {
     return (
       isAdmin ||
@@ -46,10 +42,31 @@ export default function Navbar() {
     );
   }, [isAdmin, user]);
 
+  const avatarUrl = useMemo(() => {
+    const pic = user?.profile_picture;
+    if (!pic) return "";
+    if (typeof pic === "string") return pic;
+    if (pic.url) return pic.url;
+    if (pic.path) return pic.path;
+    return "";
+  }, [user]);
+
+  const avatarInitials = useMemo(() => {
+    const base = user?.name || user?.email || "";
+    if (!base) return "";
+    return base
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((n) => n[0].toUpperCase())
+      .join("");
+  }, [user]);
+
   return (
     <header className="site-header">
       <div className="container">
         <div className="nav-grid">
+          {/* LADO IZQUIERDO: LOGO Y BURGER */}
           <div className="d-flex align-items-center gap-3">
             <button
               className="btn btn-outline-secondary d-lg-none"
@@ -65,6 +82,7 @@ export default function Navbar() {
             </Link>
           </div>
 
+          {/* CENTRO: MENU DE NAVEGACION */}
           <div className={`menu-center ${menuOpen ? "d-block" : "d-none d-lg-block"}`}>
             <nav aria-label="Navegación principal">
               <ul className="nav mb-0 justify-content-center gap-4">
@@ -79,13 +97,16 @@ export default function Navbar() {
             </nav>
           </div>
 
-          <div className="d-flex align-items-center justify-content-end gap-3 actions-right">
-            {/* SWAP: Cambiamos Explorar por Noticias */}
-                <Link to="/noticias" className="btn__search d-none d-sm-inline-block">
-                  Noticias
-                </Link>
+          {/* LADO DERECHO: ACCIONES */}
+          <div className="d-flex align-items-center justify-content-end gap-2 actions-right">
+            
+            {/* Noticias: Solo visible en pantallas muy grandes (XL) */}
+            <Link to="/noticias" className="btn__search d-none d-xl-inline-block">
+              Noticias
+            </Link>
 
-            <div className="SocialMedia d-none d-md-flex align-items-center">
+            {/* Redes: Ocultas en Laptop, visibles en Desktop grande (XL) */}
+            <div className="SocialMedia d-none d-xl-flex align-items-center">
               {SOCIAL_LINKS.map((link) => (
                 <a key={link.label} href={link.href} target="_blank" rel="noreferrer" aria-label={link.label}>
                   <i className={link.icon}></i>
@@ -93,6 +114,7 @@ export default function Navbar() {
               ))}
             </div>
 
+            {/* Carrito: Icono siempre, Texto solo en XL */}
             <button
               className="btn btn-outline-secondary rounded-pill d-flex align-items-center gap-2 position-relative"
               type="button"
@@ -102,7 +124,7 @@ export default function Navbar() {
               onClick={closeMenu}
             >
               <i className="fas fa-shopping-cart"></i>
-              <span className="d-none d-lg-inline">Carrito</span>
+              <span className="d-none d-xl-inline">Carrito</span>
               {totalItems > 0 && (
                 <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill cart-badge">
                   {totalItems}
@@ -112,21 +134,44 @@ export default function Navbar() {
 
             {isAuthenticated ? (
               <div className="d-flex align-items-center gap-2">
-                {adminFlag ? (
-                  <Link to="/admin/dashboard" className="btn btn-outline-primary" onClick={closeMenu}>
+                {adminFlag && (
+                  // Dashboard: Boton mas pequeño (btn-sm) para ahorrar espacio
+                  <Link to="/admin/dashboard" className="btn btn-outline-primary btn-sm" onClick={closeMenu}>
                     Dashboard
                   </Link>
-                ) : (
-                  <span className="text-nowrap small fw-semibold d-none d-lg-inline">{displayName}</span>
                 )}
-                <button
-                  type="button"
-                  className="btn btn-outline-secondary"
-                  onClick={handleLogout}
-                  disabled={authLoading}
+
+                {/* Nombre Usuario: Oculto en Laptop, visible en XL */}
+                <span className="text-nowrap small fw-semibold d-none d-xl-inline">
+                  {displayName}
+                </span>
+
+                <Link
+                  to="/perfil"
+                  className="profile-icon-btn"
+                  onClick={closeMenu}
+                  aria-label="Ir a mi perfil"
                 >
-                  Cerrar sesión
-                </button>
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt={displayName} className="profile-icon-avatar" />
+                  ) : avatarInitials ? (
+                    <span className="profile-icon-initials">{avatarInitials}</span>
+                  ) : (
+                    <svg
+                      width="22"
+                      height="22"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="12" cy="7" r="4" />
+                      <path d="M5.5 21c1.5-4 12-4 13 0" />
+                    </svg>
+                  )}
+                </Link>
               </div>
             ) : (
               <Link

@@ -1,4 +1,3 @@
-// src/api/coreApi.js
 import { httpCore } from "./http";
 
 const CART_KEY = import.meta.env.VITE_CART_KEY ?? "THEHUB_CART_ID";
@@ -154,3 +153,15 @@ export const CartApi = {
 };
 
 export { CART_KEY };
+
+async function getUserOrders(userId) {
+  if (!userId) return [];
+  const { data } = await httpCore.get("/get_orders", {
+    params: { user_id: userId },
+  });
+  return data;
+}
+
+export const OrdersApi = {
+  list: getUserOrders,
+};

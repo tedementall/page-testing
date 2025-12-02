@@ -995,6 +995,25 @@ select.form-control option {
   border: 1px solid rgba(255, 80, 80, 0.4);
 }
 
+/* ==== Error visual del input Confirmar ==== */
+
+.input-error {
+  border-color: rgba(255, 120, 120, 0.85) !important;
+  box-shadow: 0 0 0 3px rgba(255, 120, 120, 0.25);
+}
+
+/* ==== Mensaje centrado bajo los dos campos ==== */
+
+.password-error {
+  margin-top: 6px;
+  margin-bottom: 14px;
+  font-size: 0.85rem;
+  text-align: center;
+  color: #ffcece;
+  letter-spacing: 0.2px;
+}
+
+
 /* =========================================================
 = 11) Transiciones de página
 ========================================================= */
@@ -1191,6 +1210,222 @@ select.input-m3-pill {
 .btn-clear-search:hover { color: var(--main_color-primary); 
 
 }
+
+/* =========================================================
+= CONTACTO: Glassmorphism + halos (full width bonito)
+========================================================= */
+
+.contact-page {
+  min-height: calc(100vh - 180px); /* espacio considerando header + footer */
+  padding: 96px 0 72px;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(154, 0, 191, 0.20), transparent 55%),
+    radial-gradient(circle at 100% 100%, rgba(255, 180, 110, 0.22), transparent 55%),
+    var(--background-color);
+  display: flex;
+  align-items: center;
+}
+
+/* halo global muy suave (por si quieres animar después) */
+.contact-page-glow {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Tarjeta principal de contacto */
+.contact-card {
+  position: relative;
+  border-radius: 28px;
+  padding: 32px 32px 28px;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.9))
+      border-box;
+  box-shadow:
+    0 26px 80px rgba(15, 23, 42, 0.20),
+    0 0 0 1px rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  overflow: hidden;
+}
+
+/* Halo interno tipo aura */
+.contact-card::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background:
+    conic-gradient(
+      from 140deg,
+      rgba(255, 160, 220, 0.55),
+      rgba(151, 71, 255, 0.60),
+      rgba(255, 200, 130, 0.60),
+      rgba(255, 160, 220, 0.55)
+    );
+  opacity: 0.45;
+  filter: blur(70px);
+  z-index: -1;
+}
+
+/* Copy izquierda */
+.contact-copy h1 {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--color_text-secundary);
+  margin-bottom: 10px;
+}
+
+.contact-copy p {
+  font-size: 0.98rem;
+  color: var(--color_text-tertiary);
+  line-height: 1.6;
+}
+
+.contact-subcopy {
+  margin-top: 12px;
+  font-size: 0.9rem;
+  color: var(--color_text-primary);
+  font-weight: 500;
+}
+
+/* Formulario derecha */
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.contact-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.contact-form-group label {
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: var(--color_text-secundary);
+}
+
+/* Inputs estilo pill, suaves */
+.contact-input {
+  width: 100%;
+  border-radius: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  background: #f9fafb;
+  padding: 10px 14px;
+  font-size: 0.95rem;
+  color: var(--color_text-secundary);
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    background 0.16s ease;
+}
+
+.contact-input::placeholder {
+  color: rgba(148, 163, 184, 0.9);
+}
+
+.contact-input:focus {
+  outline: none;
+  border-color: var(--main_color-primary);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(154, 0, 191, 0.18);
+}
+
+.contact-textarea {
+  resize: vertical;
+  min-height: 130px;
+}
+
+/* Estados de error */
+.contact-input-error {
+  border-color: rgba(239, 68, 68, 0.95);
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.25);
+}
+
+.contact-error-text {
+  font-size: 0.78rem;
+  color: rgba(220, 38, 38, 0.95);
+}
+
+.contact-submit-btn {
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  border-radius: 999px;
+  border: none;
+  padding: 12px 18px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: white;
+  background: conic-gradient(
+    from 180deg,
+    #9A00BF,
+    #FF8AD4,
+    #ffbba8,
+    #FF8AD4,
+    #9A00BF
+  );
+  box-shadow: 0 12px 32px rgba(154, 0, 191, 0.3);
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    filter 0.16s ease;
+}
+
+.contact-submit-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 18px 40px rgba(154, 0, 191, 0.45);
+  filter: brightness(1.06);
+}
+
+.contact-submit-btn:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: 0 10px 28px rgba(154, 0, 191, 0.35);
+}
+
+
+/* Feedback de envío */
+.contact-feedback {
+  margin-top: 10px;
+  font-size: 0.82rem;
+}
+
+.contact-feedback-success {
+  color: #15803d;
+}
+
+.contact-feedback-error {
+  color: #b91c1c;
+}
+
+/* Responsive tweaks */
+@media (max-width: 992px) {
+  .contact-page {
+    padding: 96px 0 56px;
+  }
+
+  .contact-card {
+    padding: 24px 22px 22px;
+  }
+
+  .contact-copy {
+    margin-bottom: 4px;
+  }
+}
+
+@media (max-width: 576px) {
+  .contact-copy h1 {
+    font-size: 2rem;
+  }
+}
+
 
 /* =========================================================
 = 16) EXTRAS MODAL: Breadcrumbs & Related
@@ -1500,4 +1735,9 @@ select.input-m3-pill {
   .news-modal__title {
     font-size: 1.35rem;
   }
+
+  
+
+  
+
 }

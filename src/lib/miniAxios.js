@@ -6,7 +6,7 @@
 const PROXY_URL = "/xano-auth"; 
 
 // 2. GESTIÓN DE TOKENS
-const TOKEN_KEY = "token";
+const TOKEN_KEY = "THEHUB_TOKEN";
 let _token = (typeof localStorage !== "undefined" && localStorage.getItem(TOKEN_KEY)) || null;
 
 function setToken(t) {

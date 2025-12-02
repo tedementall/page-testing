@@ -12,6 +12,9 @@ import ProductosPage from "./pages/ProductosPage";
 import Register from "./pages/Register";
 import Users from "./pages/Users";
 import NoticiasPage from "./pages/NoticiasPage";
+import ContactPage from "./pages/ContactPage"; 
+import CustomerProfile from "./pages/CustomerProfile";
+
 
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import AdminLayout from "./AdminLayout";
@@ -28,6 +31,7 @@ export default function App() {
       {showMainLayout && <Navbar />}
 
       <Routes>
+        {/* 👇 TODAS LAS RUTAS PÚBLICAS DEBEN IR AQUÍ */}
         <Route element={<TransitionLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/cart" element={<CartPage />} />
@@ -36,8 +40,14 @@ export default function App() {
           <Route path="/productos" element={<ProductosPage />} />
           <Route path="/productos/:categoria" element={<ProductosPage />} />
           <Route path="/noticias" element={<NoticiasPage />} />
+          <Route path="/perfil" element={<CustomerProfile />} />
+
+
+          {/* 👈 RUTA DE CONTACTO */}
+          <Route path="/contacto" element={<ContactPage />} />
         </Route>
 
+        {/* ADMIN */}
         <Route element={<AdminProtectedRoute />}>
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Navigate to="/admin/dashboard" replace />} />
@@ -48,6 +58,7 @@ export default function App() {
           </Route>
         </Route>
 
+        {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
