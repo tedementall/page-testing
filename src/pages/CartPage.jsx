@@ -40,11 +40,10 @@ export default function CartPage() {
     updateItemQuantity(item.id, next).catch((e) => console.error(e))
   }, [updateItemQuantity, removeItem])
 
-  // CARRITO VACÍO
   if (!items.length) {
     return (
       <div className="cart-page-container">
-        {/* Halos de fondo */}
+        
         <div className="cart-halo cart-halo--1" />
         <div className="cart-halo cart-halo--2" />
         <div className="cart-halo cart-halo--3" />
@@ -68,10 +67,10 @@ export default function CartPage() {
     )
   }
 
-  // CARRITO CON PRODUCTOS
+
   return (
     <div className="cart-page-container">
-      {/* Halos de fondo */}
+
       <div className="cart-halo cart-halo--1" />
       <div className="cart-halo cart-halo--2" />
       
@@ -88,7 +87,7 @@ export default function CartPage() {
         </div>
 
         <div className="row g-5">
-          {/* COLUMNA IZQUIERDA: LISTA DE ITEMS */}
+
           <div className="col-12 col-lg-8">
             <div className="cart-glass-panel">
               {items.map((item) => {
@@ -99,14 +98,14 @@ export default function CartPage() {
                 return (
                   <div key={item.id} className="cart-item-row row g-3">
                     
-                    {/* Imagen */}
+
                     <div className="col-auto">
                       <div className="cart-img-box">
                         <img src={image} alt={product.name} />
                       </div>
                     </div>
 
-                    {/* Info */}
+
                     <div className="col">
                       <div className="cart-item-info">
                         <div className="category">{product.category || "Producto"}</div>
@@ -121,9 +120,9 @@ export default function CartPage() {
                       </div>
                     </div>
 
-                    {/* Cantidad & Precio */}
+
                     <div className="col-auto d-flex flex-column flex-md-row align-items-center gap-4">
-                      {/* Selector de Cantidad Estilizado */}
+
                       <div className="cart-qty-wrapper">
                         <button 
                           className="cart-qty-btn"
@@ -155,7 +154,6 @@ export default function CartPage() {
             </div>
           </div>
 
-          {/* COLUMNA DERECHA: RESUMEN */}
           <div className="col-12 col-lg-4">
             <div className="cart-summary-card">
               <h3 className="h4 fw-bold mb-4">Resumen</h3>
