@@ -1,4 +1,3 @@
-// src/admin/AddProduct.jsx
 import { useEffect, useMemo, useState } from "react";
 import { createProductWithImages, fetchProducts } from "../api/ProductsApi";
 import { useNavigate } from "react-router-dom";
@@ -10,15 +9,15 @@ function normalizeCategory(v) {
 export default function AddProduct() {
   const nav = useNavigate();
 
-  // --- Form ---
+  
   const [form, setForm] = useState({
     name: "",
     description: "",
     price: 0,
     stock: 0,
     brand: "",
-    category: "",          // categoría seleccionada del select
-    category_custom: "",   // texto cuando eligen "Otra…"
+    category: "",          
+    category_custom: "",   
   });
 
   const [files, setFiles] = useState([]);
@@ -27,7 +26,7 @@ export default function AddProduct() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
 
-  // --- Cargar categorías existentes desde productos ---
+  
   const [items, setItems] = useState([]);
   const [catLoading, setCatLoading] = useState(true);
 
@@ -58,7 +57,7 @@ export default function AddProduct() {
 
   const onChange = (e) => {
     const { name, value } = e.target;
-    // Solo normalizamos category_custom al enviar, para que el placeholder se vea tal cual
+    
     setForm((p) => ({ ...p, [name]: value }));
   };
 
@@ -89,7 +88,7 @@ export default function AddProduct() {
       setResult(res);
       setStatus("Producto creado ✅");
 
-      // reset
+      
       setForm({
         name: "",
         description: "",
@@ -190,7 +189,6 @@ export default function AddProduct() {
           />
         </div>
 
-        {/* Categoría: select + "Otra…" */}
         <div className="col-md-4">
           <label className="form-label">Categoría</label>
           <select
