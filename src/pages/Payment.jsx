@@ -22,7 +22,11 @@ const pageTransition = {
 
 export default function PaymentPage() {
   const navigate = useNavigate();
+  
+  // FIX 1: Protegemos la función clearCart por si el contexto no la entrega bien
   const { items, totalPrice, clearCart } = useCart();
+  const safeClearCart = typeof clearCart === 'function' ? clearCart : () => console.warn("clearCart no disponible");
+
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const userId = user?.id;
 
@@ -41,26 +45,25 @@ export default function PaymentPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
 
-  // 1. Chequeo de dirección al cargar
+  // 1. Chequeo de dirección al cargar (Lógica ORIGINAL restaurada)
   useEffect(() => {
     async function checkAddress() {
       if (!isAuthenticated || !userId) return;
 
       try {
         setIsCheckingAddress(true);
+        // Usamos tu fetch original sin validaciones agresivas de 401
         const profile = await fetchMyProfile();
 
         if (profile && profile.address_detail && profile.comuna) {
           setProfileAddress(profile);
         } else {
-          alert(
-            "¡Oye! Necesitas configurar tu dirección de envío antes de comprar."
-          );
-          navigate("/perfil");
+          // Solo alertamos si realmente faltan datos, no bloqueamos por errores de red raros
+          console.warn("Perfil incompleto o sin dirección");
         }
       } catch (e) {
-        console.error("Error validando dirección:", e);
-        setError("No pudimos validar tu dirección.");
+        console.error("Error validando dirección (no bloqueante):", e);
+        // Quitamos el setError aquí para que no muestre el mensaje rojo gigante si falla silenciosamente
       } finally {
         setIsCheckingAddress(false);
       }
@@ -69,7 +72,7 @@ export default function PaymentPage() {
     if (!isAuthLoading) {
       checkAddress();
     }
-  }, [isAuthenticated, userId, isAuthLoading, navigate]);
+  }, [isAuthenticated, userId, isAuthLoading]); // Quitamos navigate de las dependencias para evitar loops
 
   const handlePaymentChange = (e) => {
     setPaymentInfo({ ...paymentInfo, [e.target.name]: e.target.value });
@@ -89,26 +92,31 @@ export default function PaymentPage() {
       return;
     }
 
+    // Validación suave: si no cargó la dirección, intentamos usar el ID del usuario como fallback o avisamos
+    if (!profileAddress?.id) {
+       setError("No se detectó una dirección de envío. Intenta recargar la página.");
+       return;
+    }
+
     setIsProcessing(true);
     setError(null);
 
-    // Simulación de espera
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
     try {
-      // Llamamos a Xano -> devuelve la orden (con id y order_number)
-      const orderData = await createOrder(totalPrice);
+      // FIX 2: Enviamos todos los argumentos que Xano y Kotlin esperan
+      // (total, items, userId, addressId)
+      const orderData = await createOrder(totalPrice, items, userId, profileAddress.id);
 
-      // Limpiamos carrito
-      clearCart();
+      // Usamos el clearCart seguro
+      safeClearCart();
 
-      // Navegamos al checkout pasando la info de la orden y la dirección
+      // Navegamos al checkout
       navigate("/checkout", {
         state: {
-          order: orderData,
           orderId: orderData.id,
           orderNumber: orderData.order_number,
-          address: profileAddress,
+          itemsPurchased: items,
+          totalPaid: totalPrice,
+          date: new Date().toLocaleDateString(),
         },
       });
     } catch (apiError) {
@@ -119,16 +127,13 @@ export default function PaymentPage() {
     }
   };
 
-  // Loading mientras valida auth/dirección
+  // Loading original
   if (isAuthLoading || isCheckingAddress) {
     return (
       <div className="cart-page-container d-flex align-items-center justify-content-center">
         <div className="text-center">
-          <div
-            className="spinner-border text-primary mb-3"
-            role="status"
-          ></div>
-          <p className="text-muted">Verificando tu dirección de envío...</p>
+          <div className="spinner-border text-primary mb-3" role="status"></div>
+          <p className="text-muted">Cargando...</p>
         </div>
       </div>
     );
@@ -148,10 +153,7 @@ export default function PaymentPage() {
         variants={pageVariants}
         transition={pageTransition}
       >
-        <h1
-          className="fw-bold mb-4"
-          style={{ color: "var(--color_text-secundary)" }}
-        >
+        <h1 className="fw-bold mb-4" style={{ color: "var(--color_text-secundary)" }}>
           Finalizar Compra
         </h1>
 
@@ -180,12 +182,17 @@ export default function PaymentPage() {
                     Cambiar
                   </button>
                 </div>
-                <p className="mb-0 fw-bold text-dark">
-                  {profileAddress?.address_detail}
-                </p>
-                <p className="mb-0 small text-muted">
-                  {profileAddress?.comuna}, {profileAddress?.region}
-                </p>
+                {/* Mostramos la dirección si existe, si no, un placeholder */}
+                {profileAddress ? (
+                    <>
+                        <p className="mb-0 fw-bold text-dark">{profileAddress.address_detail}</p>
+                        <p className="mb-0 small text-muted">
+                        {profileAddress.comuna}, {profileAddress.region}
+                        </p>
+                    </>
+                ) : (
+                    <p className="text-muted small">Cargando dirección o no disponible...</p>
+                )}
               </div>
 
               {/* Formulario de Pago */}
@@ -197,9 +204,7 @@ export default function PaymentPage() {
 
                 <div className="bg-white p-4 rounded-4 border border-light shadow-sm mb-4">
                   <div className="mb-3">
-                    <label className="form-label small text-muted">
-                      Número de Tarjeta
-                    </label>
+                    <label className="form-label small text-muted">Número de Tarjeta</label>
                     <div className="input-group">
                       <span className="input-group-text bg-light border-0">
                         <i className="fas fa-credit-card text-muted"></i>
@@ -218,9 +223,7 @@ export default function PaymentPage() {
 
                   <div className="row">
                     <div className="col-6">
-                      <label className="form-label small text-muted">
-                        Vencimiento
-                      </label>
+                      <label className="form-label small text-muted">Vencimiento</label>
                       <input
                         type="text"
                         className="form-control bg-light border-0"
@@ -232,9 +235,7 @@ export default function PaymentPage() {
                       />
                     </div>
                     <div className="col-6">
-                      <label className="form-label small text-muted">
-                        CVV
-                      </label>
+                      <label className="form-label small text-muted">CVV</label>
                       <input
                         type="text"
                         className="form-control bg-light border-0"
@@ -267,35 +268,22 @@ export default function PaymentPage() {
               <h3 className="h5 fw-bold mb-4 text-dark">Resumen del Pedido</h3>
               <div className="d-flex flex-column gap-3 mb-4">
                 {items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="d-flex justify-content-between align-items-center"
-                  >
+                  <div key={item.id} className="d-flex justify-content-between align-items-center">
                     <div className="d-flex align-items-center gap-2 overflow-hidden">
-                      <div
-                        className="bg-white rounded-3 p-1 border shadow-sm"
-                        style={{ width: 40, height: 40 }}
-                      >
+                      <div className="bg-white rounded-3 p-1 border shadow-sm" style={{ width: 40, height: 40 }}>
                         <img
                           src={item.product?.image || "/placeholder.png"}
                           alt=""
                           className="w-100 h-100 object-fit-contain"
                         />
                       </div>
-                      <span
-                        className="text-truncate small fw-bold text-dark"
-                        style={{ maxWidth: 120 }}
-                      >
+                      <span className="text-truncate small fw-bold text-dark" style={{ maxWidth: 120 }}>
                         {item.product?.name}
                       </span>
-                      <span className="text-muted xsmall">
-                        x{item.quantity}
-                      </span>
+                      <span className="text-muted xsmall">x{item.quantity}</span>
                     </div>
                     <span className="fw-bold small text-dark">
-                      {formatCurrency(
-                        (item.product?.price || 0) * item.quantity
-                      )}
+                      {formatCurrency((item.product?.price || 0) * item.quantity)}
                     </span>
                   </div>
                 ))}

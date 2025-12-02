@@ -13,18 +13,21 @@ import Register from "./pages/Register";
 import Users from "./pages/Users";
 import NoticiasPage from "./pages/NoticiasPage";
 
-// 👇 TUS IMPORTS (Andru)
-import ContactPage from "./pages/ContactPage"; 
+import ContactPage from "./pages/ContactPage";
 import CustomerProfile from "./pages/CustomerProfile";
 
-// 👇 IMPORTS DE VICTOR
 import Payment from "./pages/Payment";
+import CheckoutPage from "./pages/Checkout"; 
 
+// Admin Imports
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import AdminLayout from "./AdminLayout";
 import AdminDashboard from "./admin/Dashboard";
 import ProductsAdmin from "./admin/ProductsAdmin";
 import AddProduct from "./admin/AddProduct";
+import UsersAdmin from "./pages/Users";
+import OrdersPage from "./admin/OrdersPage";
+import NewsAdmin from "./admin/NewsAdmin";
 
 export default function App() {
   const location = useLocation();
@@ -36,7 +39,6 @@ export default function App() {
 
       <Routes>
         <Route element={<TransitionLayout />}>
-          {/* Rutas Comunes */}
           <Route path="/" element={<Home />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/login" element={<Login />} />
@@ -44,23 +46,23 @@ export default function App() {
           <Route path="/productos" element={<ProductosPage />} />
           <Route path="/productos/:categoria" element={<ProductosPage />} />
           <Route path="/noticias" element={<NoticiasPage />} />
-
-          {/* Rutas de Victor (Checkout) */}
+          
           <Route path="/checkout/payment" element={<Payment />} />
-
-          {/* Tus Rutas (Andru) */}
+          <Route path="/checkout" element={<CheckoutPage />} /> 
+          
           <Route path="/perfil" element={<CustomerProfile />} />
           <Route path="/contacto" element={<ContactPage />} />
         </Route>
 
-        {/* Rutas de Admin */}
         <Route element={<AdminProtectedRoute />}>
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="products" element={<ProductsAdmin />} />
             <Route path="add-product" element={<AddProduct />} />
-            <Route path="users" element={<Users />} />
+            <Route path="users" element={<UsersAdmin />} />
+            <Route path="orders" element={<OrdersPage />} />
+            <Route path="news" element={<NewsAdmin />} />
           </Route>
         </Route>
 

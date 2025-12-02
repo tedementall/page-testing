@@ -1,11 +1,5 @@
-// src/lib/miniAxios.js
-
-// 1. CONFIGURACIÓN DEL PROXY
-// En lugar de la URL completa, usamos la ruta relativa que definiste en vite.config.js
-// "/xano-auth" -> Vite lo redirige internamente a "https://.../api:MJq6ok-f"
 const PROXY_URL = "/xano-auth"; 
 
-// 2. GESTIÓN DE TOKENS
 const TOKEN_KEY = "THEHUB_TOKEN";
 let _token = (typeof localStorage !== "undefined" && localStorage.getItem(TOKEN_KEY)) || null;
 
@@ -25,20 +19,17 @@ function clearToken() {
   setToken(null);
 }
 
-// 3. CONSTRUCTOR DE URL
 function buildURL(baseURL = "", url = "", params) {
   let target;
   const effectiveBase = baseURL || "";
 
   try {
-    // Si la base es relativa (ej: "/xano-auth"), usamos el origen de la ventana (localhost)
+    
     if (effectiveBase.startsWith("/")) {
        const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:5173";
-       // Combinamos origen + base + url, limpiando slashes dobles
        const combined = (effectiveBase + "/" + (url || "")).replace(/\/+/g, "/"); 
        target = new URL(combined, origin);
     } 
-    // Si es absoluta (https://...)
     else if (/^https?:/i.test(effectiveBase)) {
       target = new URL(url || "", effectiveBase);
     } 
@@ -63,7 +54,6 @@ function buildURL(baseURL = "", url = "", params) {
   return target.toString();
 }
 
-// 4. GESTIÓN DE HEADERS
 function ensureHeaders(headers) {
   const result = new Headers();
   
@@ -81,7 +71,6 @@ function ensureHeaders(headers) {
   return result;
 }
 
-// 5. CREADOR DE LA INSTANCIA
 function createAxiosInstance(defaultConfig = {}) {
   const requestInterceptors = [];
   const responseInterceptors = [];
@@ -212,8 +201,6 @@ function createAxiosInstance(defaultConfig = {}) {
   return instance;
 }
 
-// 6. INICIALIZACIÓN CON PROXY
-// Aquí está la clave: usamos PROXY_URL ("/xano-auth") como base por defecto.
 const api = createAxiosInstance({ baseURL: PROXY_URL });
 
 api.setToken = setToken;

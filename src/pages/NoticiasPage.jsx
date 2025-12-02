@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { loadNewsOnce } from "../services/newsStore";
+import { fetchNews } from "../api/NewsApi";
 
 function getImageUrl(item) {
   const cover = item?.cover;
@@ -28,10 +28,19 @@ export default function NoticiasPage() {
   const [selected, setSelected] = useState(null);
 
   useEffect(() => {
-    loadNewsOnce().then((data) => {
-      setNews(data || []);
-      setLoading(false);
-    });
+
+    async function load() {
+      try {
+        const data = await fetchNews();
+        const items = Array.isArray(data) ? data : data?.items || [];
+        setNews(items);
+      } catch (err) {
+        console.error("Error cargando noticias", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
   }, []);
 
   return (

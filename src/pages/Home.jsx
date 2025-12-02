@@ -9,13 +9,13 @@ import Team from "../components/Team";
 const pageVariants = {
   initial: { opacity: 0 },
   in: { opacity: 1 },
-  out: { opacity: 0 },
+  out: { opacity: 0 }
 };
 
 const pageTransition = {
   type: "tween",
   ease: "easeInOut",
-  duration: 0.4,
+  duration: 0.4
 };
 
 export default function Home() {
@@ -38,12 +38,10 @@ export default function Home() {
         <About />
       </section>
 
-      
       <section id="productos">
         <Products
           limit={6}
           showCTA={true}
-          
           title="Nuestros favoritos"
           subtitle="Colecciones limitadas de accesorios premium para dispositivos móviles, gamers y creadores. Haz clic en cualquiera para descubrir más detalles."
         />
