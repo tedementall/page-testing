@@ -12,9 +12,13 @@ import ProductosPage from "./pages/ProductosPage";
 import Register from "./pages/Register";
 import Users from "./pages/Users";
 import NoticiasPage from "./pages/NoticiasPage";
+
+// 👇 TUS IMPORTS (Andru)
 import ContactPage from "./pages/ContactPage"; 
 import CustomerProfile from "./pages/CustomerProfile";
 
+// 👇 IMPORTS DE VICTOR
+import Payment from "./pages/Payment";
 
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import AdminLayout from "./AdminLayout";
@@ -31,8 +35,8 @@ export default function App() {
       {showMainLayout && <Navbar />}
 
       <Routes>
-        {/* 👇 TODAS LAS RUTAS PÚBLICAS DEBEN IR AQUÍ */}
         <Route element={<TransitionLayout />}>
+          {/* Rutas Comunes */}
           <Route path="/" element={<Home />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/login" element={<Login />} />
@@ -40,14 +44,16 @@ export default function App() {
           <Route path="/productos" element={<ProductosPage />} />
           <Route path="/productos/:categoria" element={<ProductosPage />} />
           <Route path="/noticias" element={<NoticiasPage />} />
+
+          {/* Rutas de Victor (Checkout) */}
+          <Route path="/checkout/payment" element={<Payment />} />
+
+          {/* Tus Rutas (Andru) */}
           <Route path="/perfil" element={<CustomerProfile />} />
-
-
-          {/* 👈 RUTA DE CONTACTO */}
           <Route path="/contacto" element={<ContactPage />} />
         </Route>
 
-        {/* ADMIN */}
+        {/* Rutas de Admin */}
         <Route element={<AdminProtectedRoute />}>
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Navigate to="/admin/dashboard" replace />} />
@@ -58,7 +64,6 @@ export default function App() {
           </Route>
         </Route>
 
-        {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 

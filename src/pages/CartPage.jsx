@@ -1,196 +1,198 @@
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { useCallback } from "react"
 import { useCart } from "../context/CartContext"
 import { formatCurrency } from "../utils/currency"
 import { motion } from "framer-motion"
 
 const pageVariants = {
-  initial: {
-    opacity: 0,
-    x: "-50vw" 
-  },
-  in: {
-    opacity: 1,
-    x: 0 
-  },
-  out: {
-    opacity: 0,
-    x: "50vw" 
-  }
+  initial: { opacity: 0, y: 20 },
+  in: { opacity: 1, y: 0 },
+  out: { opacity: 0, y: -20 }
 }
 
 const pageTransition = {
   type: "tween",
-  ease: "easeInOut",
-  duration: 0.4 
+  ease: "easeOut",
+  duration: 0.4
 }
 
-
 export default function CartPage() {
-  const { items, totalPrice, incrementItem, decrementItem, removeItem, isMutating, isLoading } = useCart()
+  const navigate = useNavigate();
+  const { items, totalPrice, updateItemQuantity, removeItem, isMutating, isLoading } = useCart()
 
-  const handleIncrement = useCallback(
-    (itemId) => {
-      incrementItem(itemId).catch((error) => {
-        console.error("No se pudo aumentar la cantidad", error)
-      })
-    },
-    [incrementItem]
-  )
+  const handleCheckout = () => {
+    navigate("/checkout/payment");
+  };
 
-  const handleDecrement = useCallback(
-    (itemId) => {
-      decrementItem(itemId).catch((error) => {
-        console.error("No se pudo disminuir la cantidad", error)
-      })
-    },
-    [decrementItem]
-  )
+  const handleIncrement = useCallback((item) => {
+    const current = Number(item.quantity ?? 0)
+    const next = current + 1
+    updateItemQuantity(item.id, next).catch((e) => console.error(e))
+  }, [updateItemQuantity])
 
-  const handleRemove = useCallback(
-    (itemId) => {
-      removeItem(itemId).catch((error) => {
-        console.error("No se pudo quitar el producto", error)
-      })
-    },
-    [removeItem]
-  )
+  const handleDecrement = useCallback((item) => {
+    const current = Number(item.quantity ?? 0)
+    if (current <= 1) {
+      removeItem(item.id).catch((e) => console.error(e))
+      return
+    }
+    const next = current - 1
+    updateItemQuantity(item.id, next).catch((e) => console.error(e))
+  }, [updateItemQuantity, removeItem])
 
+  // CARRITO VACÍO
   if (!items.length) {
     return (
-      <motion.main 
-        className="main-content-padding"
-        initial="initial"
-        animate="in"
-        exit="out"
-        variants={pageVariants}
-        transition={pageTransition}
-      >
-        <div className="container py-5 text-center">
-          <h1 className="mb-3">Tu carrito</h1>
-          <p className="text-muted mb-4">
-            {isLoading ? "Estamos cargando tu carrito..." : "Todavía no has agregado productos a tu carrito."}
-          </p>
-          <Link to="/" className="btn__text">
-            Seguir descubriendo productos
-          </Link>
-        </div>
-      </motion.main>
+      <div className="cart-page-container">
+        {/* Halos de fondo */}
+        <div className="cart-halo cart-halo--1" />
+        <div className="cart-halo cart-halo--2" />
+        <div className="cart-halo cart-halo--3" />
+
+        <motion.main 
+          className="container cart-content-wrapper py-5 text-center"
+          initial="initial" animate="in" exit="out"
+          variants={pageVariants} transition={pageTransition}
+        >
+          <div className="cart-glass-panel d-inline-block p-5" style={{maxWidth: '600px'}}>
+            <h1 className="mb-3 fw-bold display-5" style={{color: 'var(--color_text-secundary)'}}>Tu carrito está vacío</h1>
+            <p className="text-muted mb-4 fs-5">
+              {isLoading ? "Cargando tus productos..." : "Aún no has agregado nada. ¡Explora lo último en tecnología!"}
+            </p>
+            <Link to="/" className="btn-checkout-gradient text-decoration-none d-inline-block w-auto px-5">
+              Explorar Tienda
+            </Link>
+          </div>
+        </motion.main>
+      </div>
     )
   }
 
+  // CARRITO CON PRODUCTOS
   return (
-    <motion.main 
-      className="main-content-padding"
-      initial="initial"
-      animate="in"
-      exit="out"
-      variants={pageVariants}
-      transition={pageTransition}
-    >
-      <div className="container py-5">
-        <h1 className="mb-4">Tu carrito</h1>
-        <div className="row g-4">
+    <div className="cart-page-container">
+      {/* Halos de fondo */}
+      <div className="cart-halo cart-halo--1" />
+      <div className="cart-halo cart-halo--2" />
+      
+      <motion.main 
+        className="container cart-content-wrapper"
+        initial="initial" animate="in" exit="out"
+        variants={pageVariants} transition={pageTransition}
+      >
+        <div className="d-flex align-items-center mb-4">
+          <h1 className="fw-bold" style={{color: 'var(--color_text-secundary)'}}>Tu Carrito</h1>
+          <span className="badge rounded-pill bg-light text-dark ms-3 fs-6 border">
+            {items.length} items
+          </span>
+        </div>
+
+        <div className="row g-5">
+          {/* COLUMNA IZQUIERDA: LISTA DE ITEMS */}
           <div className="col-12 col-lg-8">
-            <div className="table-responsive">
-              <table className="table align-middle">
-                <thead>
-                  {/* ... (tu thead) ... */}
-                </thead>
-                <tbody>
-                  {items.map((item) => {
-                    const product = item.product ?? {}
-                    const image = product.image ?? (Array.isArray(product.images) ? product.images[0] : "")
-                    const price = product.price ?? 0
-                    return (
-                      <tr key={item.id}>
-                        {/* ... (tu <td> de producto) ... */}
-                        <td>
-                          <div className="d-flex align-items-center gap-3">
-                            {image ? (
-                              <img
-                                src={image}
-                                alt={product.name ?? "Producto"}
-                                width={72}
-                                height={72}
-                                className="rounded-3"
-                                style={{ objectFit: "cover" }}
-                              />
-                            ) : null}
-                            <div>
-                              <div className="fw-semibold">{product.name}</div>
-                              <div className="text-muted small">{product.category}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="text-center">{formatCurrency(price)}</td>
-                        {/* ... (tu <td> de cantidad) ... */}
-                        <td className="text-center">
-                          <div className="input-group input-group-sm quantity-selector mx-auto" style={{ maxWidth: 140 }}>
-                            <button
-                              className="btn btn-outline-secondary"
-                              type="button"
-                              onClick={() => handleDecrement(item.id)}
-                              disabled={isMutating}
-                            >
-                              -
-                            </button>
-                            <input
-                              className="form-control text-center"
-                              type="text"
-                              value={item.quantity}
-                              readOnly
-                              aria-label={`Cantidad para ${product.name ?? "producto"}`}
-                            />
-                            <button
-                              className="btn btn-outline-secondary"
-                              type="button"
-                              onClick={() => handleIncrement(item.id)}
-                              disabled={isMutating}
-                            >
-                              +
-                            </button>
-                          </div>
-                        </td>
-                        <td className="text-end">{formatCurrency(price * item.quantity)}</td>
-                        {/* ... (tu <td> de eliminar) ... */}
-                        <td className="text-end">
-                          <button
-                            type="button"
-                            className="btn btn-link text-danger p-0"
-                            onClick={() => handleRemove(item.id)}
-                            disabled={isMutating}
-                          >
-                            Eliminar
-                          </button>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+            <div className="cart-glass-panel">
+              {items.map((item) => {
+                const product = item.product ?? {}
+                const image = product.image ?? (Array.isArray(product.images) ? product.images[0] : "/placeholder.png")
+                const price = product.price ?? 0
+
+                return (
+                  <div key={item.id} className="cart-item-row row g-3">
+                    
+                    {/* Imagen */}
+                    <div className="col-auto">
+                      <div className="cart-img-box">
+                        <img src={image} alt={product.name} />
+                      </div>
+                    </div>
+
+                    {/* Info */}
+                    <div className="col">
+                      <div className="cart-item-info">
+                        <div className="category">{product.category || "Producto"}</div>
+                        <h3>{product.name}</h3>
+                        <button 
+                          className="btn btn-link p-0 text-danger text-decoration-none small"
+                          onClick={() => removeItem(item.id)}
+                          disabled={isMutating}
+                        >
+                          <i className="fas fa-trash-alt me-1"></i> Eliminar
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Cantidad & Precio */}
+                    <div className="col-auto d-flex flex-column flex-md-row align-items-center gap-4">
+                      {/* Selector de Cantidad Estilizado */}
+                      <div className="cart-qty-wrapper">
+                        <button 
+                          className="cart-qty-btn"
+                          onClick={() => handleDecrement(item)}
+                          disabled={isMutating}
+                        >-</button>
+                        
+                        <input 
+                          type="text" 
+                          className="cart-qty-input" 
+                          value={item.quantity} 
+                          readOnly 
+                        />
+                        
+                        <button 
+                          className="cart-qty-btn"
+                          onClick={() => handleIncrement(item)}
+                          disabled={isMutating}
+                        >+</button>
+                      </div>
+
+                      <div className="cart-price text-end" style={{minWidth: '100px'}}>
+                        {formatCurrency(price * item.quantity)}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
-          {/* ... (tu columna de Resumen del carrito) ... */}
+
+          {/* COLUMNA DERECHA: RESUMEN */}
           <div className="col-12 col-lg-4">
-            <div className="p-4 rounded-4 shadow-sm h-100 bg-white">
-              <h2 className="h5 mb-3">Resumen del carrito</h2>
-              <div className="d-flex justify-content-between mb-4">
+            <div className="cart-summary-card">
+              <h3 className="h4 fw-bold mb-4">Resumen</h3>
+              
+              <div className="summary-row">
+                <span>Subtotal</span>
+                <span>{formatCurrency(totalPrice)}</span>
+              </div>
+              <div className="summary-row">
+                <span>Envío</span>
+                <span className="text-success">Gratis</span>
+              </div>
+              <div className="summary-row">
+                <span>Impuestos</span>
+                <span>Incluidos</span>
+              </div>
+
+              <div className="summary-row total">
                 <span>Total</span>
-                <span className="fw-bold text-primary">{formatCurrency(totalPrice)}</span>
+                <span style={{color: 'var(--main_color-primary)'}}>{formatCurrency(totalPrice)}</span>
               </div>
-              <div className="d-grid gap-2">
-                <Link to="/" className="btn btn-outline-secondary">
-                  Seguir comprando
-                </Link>
-                <button type="button" className="btn__text" disabled={isMutating || isLoading}>
-                  Finalizar compra
-                </button>
-              </div>
+
+              <button 
+                className="btn-checkout-gradient"
+                onClick={handleCheckout}
+                disabled={isMutating || isLoading}
+              >
+                {isLoading ? "Procesando..." : "Finalizar Compra"}
+              </button>
+
+              <Link to="/" className="btn-continue-link">
+                Seguir comprando
+              </Link>
             </div>
           </div>
         </div>
-      </div>
-    </motion.main>
+      </motion.main>
+    </div>
   )
 }
