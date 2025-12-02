@@ -12,6 +12,7 @@ import ProductosPage from "./pages/ProductosPage";
 import Register from "./pages/Register";
 import Users from "./pages/Users";
 import NoticiasPage from "./pages/NoticiasPage";
+import Payment from "./pages/Payment"; // 🎯 CORREGIDO: Importa como 'Payment'
 
 import ContactPage from "./pages/ContactPage";
 import CustomerProfile from "./pages/CustomerProfile";

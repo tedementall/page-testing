@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom"
 import { useCallback } from "react"
-import { useCart } from "../context/CartContext"
+
+import { useCart } from "../context/CartContext" 
 import { formatCurrency } from "../utils/currency"
 import { motion } from "framer-motion"
 
