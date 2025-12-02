@@ -50,6 +50,7 @@ async function getCart(cartId = getStoredCartId()) {
   const finalId = cartId ?? getStoredCartId();
   if (!finalId) return null;
 
+  
   const { data } = await httpCore.get("/cart_item", {
     params: {
       cart_id: finalId,
@@ -107,6 +108,7 @@ async function clearCart(cartId = getStoredCartId()) {
   const cart = await getCart(effective);
   if (!cart?.items?.length) return;
 
+  
   await Promise.all(
     cart.items.map((item) =>
       item?.id ? removeItem(item.id) : Promise.resolve()
